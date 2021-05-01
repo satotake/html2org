@@ -163,27 +163,21 @@ func TestTables(t *testing.T) {
 		{
 			"<table><tr><td></td><td></td></tr></table>",
 			// Empty table
-			// +--+--+
 			// |  |  |
-			// +--+--+
-			"+--+--+\n|  |  |\n+--+--+",
+			"|  |  |",
 			"",
 		},
 		{
 			"<table><tr><td>cell1</td><td>cell2</td></tr></table>",
-			// +-------+-------+
 			// | cell1 | cell2 |
-			// +-------+-------+
-			"+-------+-------+\n| cell1 | cell2 |\n+-------+-------+",
+			"| cell1 | cell2 |",
 			"cell1 cell2",
 		},
 		{
 			"<table><tr><td>row1</td></tr><tr><td>row2</td></tr></table>",
-			// +------+
 			// | row1 |
 			// | row2 |
-			// +------+
-			"+------+\n| row1 |\n| row2 |\n+------+",
+			"| row1 |\n| row2 |",
 			"row1 row2",
 		},
 		{
@@ -193,16 +187,12 @@ func TestTables(t *testing.T) {
 					<tr><td>Row-2-Col-1</td><td>Row-2-Col-2</td></tr>
 				</tbody>
 			</table>`,
-			// +--------------------------------+-------------+
 			// | Row-1-Col-1-Msg123456789012345 | Row-1-Col-2 |
 			// | Row-1-Col-1-Msg2               |             |
 			// | Row-2-Col-1                    | Row-2-Col-2 |
-			// +--------------------------------+-------------+
-			`+--------------------------------+-------------+
-| Row-1-Col-1-Msg123456789012345 | Row-1-Col-2 |
+			`| Row-1-Col-1-Msg123456789012345 | Row-1-Col-2 |
 | Row-1-Col-1-Msg2               |             |
-| Row-2-Col-1                    | Row-2-Col-2 |
-+--------------------------------+-------------+`,
+| Row-2-Col-1                    | Row-2-Col-2 |`,
 			`Row-1-Col-1-Msg123456789012345
 
 Row-1-Col-1-Msg2
@@ -214,11 +204,9 @@ Row-1-Col-2 Row-2-Col-1 Row-2-Col-2`,
 			   <tr><td>cell1-1</td><td>cell1-2</td></tr>
 			   <tr><td>cell2-1</td><td>cell2-2</td></tr>
 			</table>`,
-			// +---------+---------+
 			// | cell1-1 | cell1-2 |
 			// | cell2-1 | cell2-2 |
-			// +---------+---------+
-			"+---------+---------+\n| cell1-1 | cell1-2 |\n| cell2-1 | cell2-2 |\n+---------+---------+",
+			"| cell1-1 | cell1-2 |\n| cell2-1 | cell2-2 |",
 			"cell1-1 cell1-2 cell2-1 cell2-2",
 		},
 		{
@@ -234,14 +222,12 @@ Row-1-Col-2 Row-2-Col-1 Row-2-Col-2`,
 					<tr><td>Row 2 Col 1</td><td>Row 2 Col 2</td></tr>
 				</tbody>
 			</table>`,
-			`+-------------+-------------+
-|  HEADER 1   |  HEADER 2   |
+			`|  HEADER 1   |  HEADER 2   |
 +-------------+-------------+
 | Row 1 Col 1 | Row 1 Col 2 |
 | Row 2 Col 1 | Row 2 Col 2 |
 +-------------+-------------+
-|  FOOTER 1   |  FOOTER 2   |
-+-------------+-------------+`,
+|  FOOTER 1   |  FOOTER 2   |`,
 			"Header 1 Header 2 Footer 1 Footer 2 Row 1 Col 1 Row 1 Col 2 Row 2 Col 1 Row 2 Col 2",
 		},
 		// Two tables in same HTML (goal is to test that context is
@@ -273,30 +259,27 @@ Row-1-Col-2 Row-2-Col-1 Row-2-Col-2`,
 					</tbody>
 				</table>
 			</p>`,
-			`+---------------------+---------------------+
-|  TABLE 1 HEADER 1   |  TABLE 1 HEADER 2   |
+			`|  TABLE 1 HEADER 1   |  TABLE 1 HEADER 2   |
 +---------------------+---------------------+
 | Table 1 Row 1 Col 1 | Table 1 Row 1 Col 2 |
 | Table 1 Row 2 Col 1 | Table 1 Row 2 Col 2 |
 +---------------------+---------------------+
 |  TABLE 1 FOOTER 1   |  TABLE 1 FOOTER 2   |
-+---------------------+---------------------+
 
-+---------------------+---------------------+
+
 |  TABLE 2 HEADER 1   |  TABLE 2 HEADER 2   |
 +---------------------+---------------------+
 | Table 2 Row 1 Col 1 | Table 2 Row 1 Col 2 |
 | Table 2 Row 2 Col 1 | Table 2 Row 2 Col 2 |
 +---------------------+---------------------+
-|  TABLE 2 FOOTER 1   |  TABLE 2 FOOTER 2   |
-+---------------------+---------------------+`,
+|  TABLE 2 FOOTER 1   |  TABLE 2 FOOTER 2   |`,
 			`Table 1 Header 1 Table 1 Header 2 Table 1 Footer 1 Table 1 Footer 2 Table 1 Row 1 Col 1 Table 1 Row 1 Col 2 Table 1 Row 2 Col 1 Table 1 Row 2 Col 2
 
 Table 2 Header 1 Table 2 Header 2 Table 2 Footer 1 Table 2 Footer 2 Table 2 Row 1 Col 1 Table 2 Row 1 Col 2 Table 2 Row 2 Col 1 Table 2 Row 2 Col 2`,
 		},
 		{
 			"_<table><tr><td>cell</td></tr></table>_",
-			"_\n\n+------+\n| cell |\n+------+\n\n_",
+			"_\n\n| cell |_",
 			"_\n\ncell\n\n_",
 		},
 		{
@@ -317,8 +300,7 @@ Table 2 Header 1 Table 2 Header 2 Table 2 Footer 1 Table 2 Footer 2 Table 2 Row 
 					<td>$1.99</td>
 				</tr>
 			</table>`,
-			`+--------+--------------------------------+--------+
-|  ITEM  |          DESCRIPTION           | PRICE  |
+			`|  ITEM  |          DESCRIPTION           | PRICE  |
 +--------+--------------------------------+--------+
 | Golang | Open source programming        | $10.99 |
 |        | language that makes it easy    |        |
@@ -326,8 +308,7 @@ Table 2 Header 1 Table 2 Header 2 Table 2 Footer 1 Table 2 Footer 2 Table 2 Row 
 |        | efficient software             |        |
 | Hermes | Programmatically create        | $1.99  |
 |        | beautiful e-mails using        |        |
-|        | Golang.                        |        |
-+--------+--------------------------------+--------+`,
+|        | Golang.                        |        |`,
 			"Item Description Price Golang Open source programming language that makes it easy to build simple, reliable, and efficient software $10.99 Hermes Programmatically create beautiful e-mails using Golang. $1.99",
 		},
 	}
@@ -364,15 +345,15 @@ func TestStrippingLists(t *testing.T) {
 		},
 		{
 			"<ul><li>item</li></ul>_",
-			"* item\n\n_",
+			"- item\n\n_",
 		},
 		{
 			"<li class='123'>item 1</li> <li>item 2</li>\n_",
-			"* item 1\n* item 2\n_",
+			"- item 1\n- item 2\n_",
 		},
 		{
 			"<li>item 1</li> \t\n <li>item 2</li> <li> item 3</li>\n_",
-			"* item 1\n* item 2\n* item 3\n_",
+			"- item 1\n- item 2\n- item 3\n_",
 		},
 	}
 
@@ -400,7 +381,7 @@ func TestLinks(t *testing.T) {
 		},
 		{
 			`<a href="http://example.com/"></a>`,
-			`( http://example.com/ )`,
+			`[[http://example.com][]]`,
 		},
 		{
 			`<a href="">Link</a>`,
@@ -408,59 +389,59 @@ func TestLinks(t *testing.T) {
 		},
 		{
 			`<a href="http://example.com/">Link</a>`,
-			`Link ( http://example.com/ )`,
+			`[[http://example.com][Link]]`,
 		},
 		{
 			`<a href="http://example.com/"><span class="a">Link</span></a>`,
-			`Link ( http://example.com/ )`,
+			`[[http://example.com][Link]]`,
 		},
 		{
 			"<a href='http://example.com/'>\n\t<span class='a'>Link</span>\n\t</a>",
-			`Link ( http://example.com/ )`,
+			`[[http://example.com][Link]]`,
 		},
 		{
 			"<a href='mailto:contact@example.org'>Contact Us</a>",
-			`Contact Us ( contact@example.org )`,
+			`[[mailto:contact@example.org][Contact Us]]`,
 		},
 		{
 			"<a href=\"http://example.com:80/~user?aaa=bb&amp;c=d,e,f#foo\">Link</a>",
-			`Link ( http://example.com:80/~user?aaa=bb&c=d,e,f#foo )`,
+			`[[http://example.com:80/~user?aaa=bb&c=d,e,f#foo][Link]]`,
 		},
 		{
 			"<a title='title' href=\"http://example.com/\">Link</a>",
-			`Link ( http://example.com/ )`,
+			`[[http://example.com][Link]]`,
 		},
 		{
 			"<a href=\"   http://example.com/ \"> Link </a>",
-			`Link ( http://example.com/ )`,
+			`[[http://example.com][Link]]`,
 		},
 		{
 			"<a href=\"http://example.com/a/\">Link A</a> <a href=\"http://example.com/b/\">Link B</a>",
-			`Link A ( http://example.com/a/ ) Link B ( http://example.com/b/ )`,
+			`[[http://example.com/a/][Link A]] [[http://example.com/b/][Link B]]`,
 		},
 		{
 			"<a href=\"%%LINK%%\">Link</a>",
-			`Link ( %%LINK%% )`,
+			`[[%%LINK%%][Link]]`,
 		},
 		{
 			"<a href=\"[LINK]\">Link</a>",
-			`Link ( [LINK] )`,
+			`[[[LINK]][Link]]`,
 		},
 		{
 			"<a href=\"{LINK}\">Link</a>",
-			`Link ( {LINK} )`,
+			`[[{LINK}][Link]]`,
 		},
 		{
 			"<a href=\"[[!unsubscribe]]\">Link</a>",
-			`Link ( [[!unsubscribe]] )`,
+			`[[[[!unsubscribe]]][Link]]`,
 		},
 		{
 			"<p>This is <a href=\"http://www.google.com\" >link1</a> and <a href=\"http://www.google.com\" >link2 </a> is next.</p>",
-			`This is link1 ( http://www.google.com ) and link2 ( http://www.google.com ) is next.`,
+			`This is [[http://www.google.com][link1]] and [[http://www.google.com][link2]] is next.`,
 		},
 		{
 			"<a href=\"http://www.google.com\" >http://www.google.com</a>",
-			`http://www.google.com`,
+			`[[http://www.google.com][http://www.google.com]]`,
 		},
 	}
 
@@ -532,7 +513,7 @@ func TestImageAltTags(t *testing.T) {
 		},
 		{
 			`<img src="http://example.ru/hello.jpg" />`,
-			``,
+			`[[http://example.ru/hello.jpg]]`,
 		},
 		{
 			`<img alt="Example"/>`,
@@ -540,24 +521,25 @@ func TestImageAltTags(t *testing.T) {
 		},
 		{
 			`<img src="http://example.ru/hello.jpg" alt="Example"/>`,
-			``,
+			`#+NAME: Example
+[[http://example.ru/hello.jpg]]`,
 		},
 		// Images do matter if they are in a link.
 		{
 			`<a href="http://example.com/"><img src="http://example.ru/hello.jpg" alt="Example"/></a>`,
-			`Example ( http://example.com/ )`,
+			`[[http://example.com/][Example]] [[http://example.ru/hello.jpg]]`,
 		},
 		{
 			`<a href="http://example.com/"><img src="http://example.ru/hello.jpg" alt="Example"></a>`,
-			`Example ( http://example.com/ )`,
+			`[[http://example.com/][Example]] [[http://example.ru/hello.jpg]]`,
 		},
 		{
 			`<a href='http://example.com/'><img src='http://example.ru/hello.jpg' alt='Example'/></a>`,
-			`Example ( http://example.com/ )`,
+			`[[http://example.com/][Example]] [[http://example.ru/hello.jpg]]`,
 		},
 		{
 			`<a href='http://example.com/'><img src='http://example.ru/hello.jpg' alt='Example'></a>`,
-			`Example ( http://example.com/ )`,
+			`[[http://example.com/][Example]] [[http://example.ru/hello.jpg]]`,
 		},
 	}
 
@@ -577,31 +559,31 @@ func TestHeadings(t *testing.T) {
 	}{
 		{
 			"<h1>Test</h1>",
-			"****\nTest\n****",
+			"\n* Test\n",
 		},
 		{
 			"\t<h1>\nTest</h1> ",
-			"****\nTest\n****",
+			"\n* Test\n",
 		},
 		{
 			"\t<h1>\nTest line 1<br>Test 2</h1> ",
-			"***********\nTest line 1\nTest 2\n***********",
+			"\n* Test line1 Test 2\n",
 		},
 		{
 			"<h1>Test</h1> <h1>Test</h1>",
-			"****\nTest\n****\n\n****\nTest\n****",
+			"\n* Test\n* Test\n",
 		},
 		{
 			"<h2>Test</h2>",
-			"----\nTest\n----",
+			"\n** Test\n",
 		},
 		{
 			"<h1><a href='http://example.com/'>Test</a></h1>",
-			"****************************\nTest ( http://example.com/ )\n****************************",
+			"\n* [[http://example.com/][Test]]\n",
 		},
 		{
 			"<h3> <span class='a'>Test </span></h3>",
-			"Test\n----",
+			"\n*** Test\n----",
 		},
 	}
 
@@ -692,31 +674,55 @@ func TestBlockquotes(t *testing.T) {
 	}{
 		{
 			"<div>level 0<blockquote>level 1<br><blockquote>level 2</blockquote>level 1</blockquote><div>level 0</div></div>",
-			"level 0\n> \n> level 1\n> \n>> level 2\n> \n> level 1\n\nlevel 0",
+			`level 0
+#+BEGIN_QUOTE
+level 1
+level 2
+level 1
+#+END_QUOTE
+level 0`,
 		},
 		{
 			"<blockquote>Test</blockquote>Test",
-			"> \n> Test\n\nTest",
+			`#+BEGIN_QUOTE
+Test
+#+END_QUOTE
+Test`,
 		},
 		{
 			"\t<blockquote> \nTest<br></blockquote> ",
-			"> \n> Test\n>",
+			`#+BEGIN_QUOTE
+Test
+
+#+END_QUOTE`,
 		},
 		{
 			"\t<blockquote> \nTest line 1<br>Test 2</blockquote> ",
-			"> \n> Test line 1\n> Test 2",
+			`#+BEGIN_QUOTE
+Test line 1
+Test 2
+#+END_QUOTE`,
 		},
 		{
 			"<blockquote>Test</blockquote> <blockquote>Test</blockquote> Other Test",
-			"> \n> Test\n\n> \n> Test\n\nOther Test",
+			`#+BEGIN_QUOTE
+Test
+#+END_QUOTE
+#+BEGIN_QUOTE
+Other Test
+#+END_QUOTE`,
 		},
 		{
 			"<blockquote>Lorem ipsum Commodo id consectetur pariatur ea occaecat minim aliqua ad sit consequat quis ex commodo Duis incididunt eu mollit consectetur fugiat voluptate dolore in pariatur in commodo occaecat Ut occaecat velit esse labore aute quis commodo non sit dolore officia Excepteur cillum amet cupidatat culpa velit labore ullamco dolore mollit elit in aliqua dolor irure do</blockquote>",
-			"> \n> Lorem ipsum Commodo id consectetur pariatur ea occaecat minim aliqua ad\n> sit consequat quis ex commodo Duis incididunt eu mollit consectetur fugiat\n> voluptate dolore in pariatur in commodo occaecat Ut occaecat velit esse\n> labore aute quis commodo non sit dolore officia Excepteur cillum amet\n> cupidatat culpa velit labore ullamco dolore mollit elit in aliqua dolor\n> irure do",
+			`#+BEGIN_QUOTE
+Lorem ipsum Commodo id consectetur pariatur ea occaecat minim aliqua ad sit consequat quis ex commodo Duis incididunt eu mollit consectetur fugiat\n> voluptate dolore in pariatur in commodo occaecat Ut occaecat velit esse\n> labore aute quis commodo non sit dolore officia Excepteur cillum amet\n> cupidatat culpa velit labore ullamco dolore mollit elit in aliqua dolor irure do
+#+END_QUOTE`,
 		},
 		{
 			"<blockquote>Lorem<b>ipsum</b><b>Commodo</b><b>id</b><b>consectetur</b><b>pariatur</b><b>ea</b><b>occaecat</b><b>minim</b><b>aliqua</b><b>ad</b><b>sit</b><b>consequat</b><b>quis</b><b>ex</b><b>commodo</b><b>Duis</b><b>incididunt</b><b>eu</b><b>mollit</b><b>consectetur</b><b>fugiat</b><b>voluptate</b><b>dolore</b><b>in</b><b>pariatur</b><b>in</b><b>commodo</b><b>occaecat</b><b>Ut</b><b>occaecat</b><b>velit</b><b>esse</b><b>labore</b><b>aute</b><b>quis</b><b>commodo</b><b>non</b><b>sit</b><b>dolore</b><b>officia</b><b>Excepteur</b><b>cillum</b><b>amet</b><b>cupidatat</b><b>culpa</b><b>velit</b><b>labore</b><b>ullamco</b><b>dolore</b><b>mollit</b><b>elit</b><b>in</b><b>aliqua</b><b>dolor</b><b>irure</b><b>do</b></blockquote>",
-			"> \n> Lorem *ipsum* *Commodo* *id* *consectetur* *pariatur* *ea* *occaecat* *minim*\n> *aliqua* *ad* *sit* *consequat* *quis* *ex* *commodo* *Duis* *incididunt* *eu*\n> *mollit* *consectetur* *fugiat* *voluptate* *dolore* *in* *pariatur* *in* *commodo*\n> *occaecat* *Ut* *occaecat* *velit* *esse* *labore* *aute* *quis* *commodo*\n> *non* *sit* *dolore* *officia* *Excepteur* *cillum* *amet* *cupidatat* *culpa*\n> *velit* *labore* *ullamco* *dolore* *mollit* *elit* *in* *aliqua* *dolor* *irure*\n> *do*",
+			`#+BEGIN_QUOTE
+Lorem *ipsum* *Commodo* *id* *consectetur* *pariatur* *ea* *occaecat* *minim* *aliqua* *ad* *sit* *consequat* *quis* *ex* *commodo* *Duis* *incididunt* *eu* *mollit* *consectetur* *fugiat* *voluptate* *dolore* *in* *pariatur* *in* *commodo* *occaecat* *Ut* *occaecat* *velit* *esse* *labore* *aute* *quis* *commodo* *non* *sit* *dolore* *officia* *Excepteur* *cillum* *amet* *cupidatat* *culpa* *velit* *labore* *ullamco* *dolore* *mollit* *elit* *in* *aliqua* *dolor* *irure* *do*
+#+END_QUOTE`,
 		},
 	}
 
@@ -795,7 +801,7 @@ func TestText(t *testing.T) {
 			`<li>
 		  <a href="/new" data-ga-click="Header, create new repository, icon:repo"><span class="octicon octicon-repo"></span> New repository</a>
 		</li>`,
-			`\* New repository \( /new \)`,
+			"- [[/new][New repository]]",
 		},
 		{
 			`hi
@@ -813,15 +819,15 @@ func TestText(t *testing.T) {
 	</ul>
 `,
 			`hi
-hello google \( https://google.com \)
+hello [[https://google.com][google]]
 
 test
 
 List:
 
-\* Foo \( foo \)
-\* Barsoap \( http://www.microshwhat.com/bar/soapy \)
-\* Baz`,
+- [[foo][Foo]]
+- [[http://www.microshwhat.com/bar/soapy][Barsoap]]
+- Baz`,
 		},
 		// Malformed input html.
 		{
@@ -838,13 +844,16 @@ List:
 		        <li>Baz</li>
 			</ul>
 		`,
-			`hi hello google \( https://google.com \) test
+			`hi
+hello [[https://google.com][google]]
+
+test
 
 List:
 
-\* Foo \( foo \)
-\* Bar \( /\n[ \t]+bar/baz \)
-\* Baz`,
+- [[foo][Foo]]
+- [[http://www.microshwhat.com/bar/soapy][Barsoap]]
+- Baz`,
 		},
 	}
 
