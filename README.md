@@ -2,6 +2,7 @@
 
 [![Documentation](https://godoc.org/github.com/satotake/html2org?status.svg)](https://godoc.org/github.com/satotake/html2org)
 [![Report Card](https://goreportcard.com/badge/github.com/satotake/html2org)](https://goreportcard.com/report/github.com/satotake/html2org)
+![Github actions](https://github.com/satotake/html2org/actions/workflows/test.yml/badge.svg?branch=main)
 
 ### Converts HTML into emacs org file
 
