@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"net/url"
 	"regexp"
 	"strings"
 	"unicode"
@@ -20,6 +21,7 @@ type Options struct {
 	PrettyTablesOptions *PrettyTablesOptions // Configures pretty ASCII rendering for table elements.
 	OmitLinks           bool                 // Turns on omitting links
 	BreakLongLines      bool
+	BaseURL             string
 }
 
 // PrettyTablesOptions overrides tablewriter behaviors
@@ -253,8 +255,12 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 		}
 
 		hrefLink := ""
+		var err error
 		if !ctx.options.OmitLinks {
-			hrefLink = ctx.normalizeHrefLink(strings.TrimSpace(getAttrVal(node, "href")))
+			hrefLink, err = ctx.normalizeHrefLink(strings.TrimSpace(getAttrVal(node, "href")))
+			if err != nil {
+				return err
+			}
 		}
 
 		res := ""
@@ -285,7 +291,10 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 
 	case atom.Img:
 		alt := getAttrVal(node, "alt")
-		src := getAttrVal(node, "src")
+		src, err := ctx.normalizeHrefLink(getAttrVal(node, "src"))
+		if err != nil {
+			return err
+		}
 		if src == "" {
 			return ctx.emit("")
 		} else if alt != "" {
@@ -546,10 +555,21 @@ func (ctx *textifyTraverseContext) breakLongLines(data string) []string {
 	return ret
 }
 
-func (ctx *textifyTraverseContext) normalizeHrefLink(link string) string {
+func (ctx *textifyTraverseContext) normalizeHrefLink(link string) (string, error) {
 	link = strings.TrimSpace(link)
 	link = strings.ReplaceAll(link, "\n", "")
-	return link
+	if ctx.options.BaseURL != "" {
+		u, err := url.Parse(link)
+		if err != nil {
+			return "", err
+		}
+		base, err := url.Parse(ctx.options.BaseURL)
+		if err != nil {
+			return "", err
+		}
+		link = base.ResolveReference(u).String()
+	}
+	return link, nil
 }
 
 // renderEachChild visits each direct child of a node and collects the sequence of

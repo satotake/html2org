@@ -370,6 +370,38 @@ func TestStrippingLists(t *testing.T) {
 	}
 }
 
+func TestBaseURLOption(t *testing.T) {
+	testCases := []struct {
+		baseURL string
+		input   string
+		output  string
+	}{
+		{
+			"http://example.com/foo/",
+			`<a href="./bar/">bar</a>`,
+			`[[http://example.com/foo/bar/][bar]]`,
+		},
+		{
+			"http://example.com/foo/",
+			`<a href="../">top</a>`,
+			`[[http://example.com/][top]]`,
+		},
+		{
+			"http://example.com/foo/",
+			`<img src="hello.jpg">`,
+			`[[http://example.com/foo/hello.jpg]]`,
+		},
+	}
+
+	for _, testCase := range testCases {
+		if msg, err := wantString(testCase.input, testCase.output, Options{BaseURL: testCase.baseURL}); err != nil {
+			t.Error(err)
+		} else if len(msg) > 0 {
+			t.Log(msg)
+		}
+	}
+}
+
 func TestLinks(t *testing.T) {
 	testCases := []struct {
 		input  string
