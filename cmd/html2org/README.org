@@ -1,0 +1,25 @@
+* html2org (cli)
+
+** Install
+#+begin_src sh
+go get -u github.com/satotake/html2org/cmd/html2org
+#+end_src
+
+** Usage
+#+begin_src
+html2org <flags>
+
+  -i string
+    input file path (default stdin)
+  -o string
+    output file path (default stdout)
+  -u string
+    set BaseURL
+  -v
+    show version
+#+end_src
+
+** Example
+#+begin_src sh
+html2org -i site/index.html -o docs/index.org
+#+end_src
