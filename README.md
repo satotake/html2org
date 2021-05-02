@@ -8,6 +8,7 @@
 
 Fork of jaytailor's [html2text](https://github.com/jaytaylor/html2text)
 
+If you would like to use this package as CLI, see [here](https://github.com/satotake/html2org/tree/main/cmd/html2org)
 
 ## Download the package
 

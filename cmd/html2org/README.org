@@ -17,6 +17,8 @@ html2org <flags>
     set BaseURL
   -v
     show version
+  -h
+    show usage
 #+end_src
 
 ** Example
