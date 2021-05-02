@@ -1,4 +1,4 @@
-package html2text
+package html2org
 
 import (
 	"bytes"
@@ -141,7 +141,12 @@ func TestParagraphsAndBreaks(t *testing.T) {
 		},
 		{
 			"<pre>test1\ntest 2\n\ntest  3</pre>",
-			"test1\ntest 2\n\ntest  3",
+			`#+begin_verse
+test1
+test 2
+
+test  3
+#+end_verse`,
 		},
 	}
 
@@ -266,7 +271,6 @@ Row-1-Col-2 Row-2-Col-1 Row-2-Col-2`,
 +---------------------+---------------------+
 |  TABLE 1 FOOTER 1   |  TABLE 1 FOOTER 2   |
 
-
 |  TABLE 2 HEADER 1   |  TABLE 2 HEADER 2   |
 +---------------------+---------------------+
 | Table 2 Row 1 Col 1 | Table 2 Row 1 Col 2 |
@@ -279,7 +283,7 @@ Table 2 Header 1 Table 2 Header 2 Table 2 Footer 1 Table 2 Footer 2 Table 2 Row 
 		},
 		{
 			"_<table><tr><td>cell</td></tr></table>_",
-			"_\n\n| cell |_",
+			"_\n\n| cell |\n\n_",
 			"_\n\ncell\n\n_",
 		},
 		{
@@ -381,7 +385,7 @@ func TestLinks(t *testing.T) {
 		},
 		{
 			`<a href="http://example.com/"></a>`,
-			`[[http://example.com][]]`,
+			`[[http://example.com/]]`,
 		},
 		{
 			`<a href="">Link</a>`,
@@ -389,15 +393,15 @@ func TestLinks(t *testing.T) {
 		},
 		{
 			`<a href="http://example.com/">Link</a>`,
-			`[[http://example.com][Link]]`,
+			`[[http://example.com/][Link]]`,
 		},
 		{
 			`<a href="http://example.com/"><span class="a">Link</span></a>`,
-			`[[http://example.com][Link]]`,
+			`[[http://example.com/][Link]]`,
 		},
 		{
 			"<a href='http://example.com/'>\n\t<span class='a'>Link</span>\n\t</a>",
-			`[[http://example.com][Link]]`,
+			`[[http://example.com/][Link]]`,
 		},
 		{
 			"<a href='mailto:contact@example.org'>Contact Us</a>",
@@ -409,11 +413,11 @@ func TestLinks(t *testing.T) {
 		},
 		{
 			"<a title='title' href=\"http://example.com/\">Link</a>",
-			`[[http://example.com][Link]]`,
+			`[[http://example.com/][Link]]`,
 		},
 		{
 			"<a href=\"   http://example.com/ \"> Link </a>",
-			`[[http://example.com][Link]]`,
+			`[[http://example.com/][Link]]`,
 		},
 		{
 			"<a href=\"http://example.com/a/\">Link A</a> <a href=\"http://example.com/b/\">Link B</a>",
@@ -441,7 +445,7 @@ func TestLinks(t *testing.T) {
 		},
 		{
 			"<a href=\"http://www.google.com\" >http://www.google.com</a>",
-			`[[http://www.google.com][http://www.google.com]]`,
+			`[[http://www.google.com]]`,
 		},
 	}
 
@@ -489,7 +493,9 @@ func TestOmitLinks(t *testing.T) {
 		},
 		{
 			`<a href="http://example.com/"><img src="http://example.ru/hello.jpg" alt="Example"></a>`,
-			`Example`,
+			`#+NAME: Example
+[[http://example.ru/hello.jpg]]
+Example`,
 		},
 	}
 
@@ -527,19 +533,15 @@ func TestImageAltTags(t *testing.T) {
 		// Images do matter if they are in a link.
 		{
 			`<a href="http://example.com/"><img src="http://example.ru/hello.jpg" alt="Example"/></a>`,
-			`[[http://example.com/][Example]] [[http://example.ru/hello.jpg]]`,
-		},
-		{
-			`<a href="http://example.com/"><img src="http://example.ru/hello.jpg" alt="Example"></a>`,
-			`[[http://example.com/][Example]] [[http://example.ru/hello.jpg]]`,
-		},
-		{
-			`<a href='http://example.com/'><img src='http://example.ru/hello.jpg' alt='Example'/></a>`,
-			`[[http://example.com/][Example]] [[http://example.ru/hello.jpg]]`,
+			`#+NAME: Example
+[[http://example.ru/hello.jpg]]
+[[http://example.com/][Example]]`,
 		},
 		{
 			`<a href='http://example.com/'><img src='http://example.ru/hello.jpg' alt='Example'></a>`,
-			`[[http://example.com/][Example]] [[http://example.ru/hello.jpg]]`,
+			`#+NAME: Example
+[[http://example.ru/hello.jpg]]
+[[http://example.com/][Example]]`,
 		},
 	}
 
@@ -559,31 +561,31 @@ func TestHeadings(t *testing.T) {
 	}{
 		{
 			"<h1>Test</h1>",
-			"\n* Test\n",
+			"* Test",
 		},
 		{
 			"\t<h1>\nTest</h1> ",
-			"\n* Test\n",
+			"* Test",
 		},
 		{
 			"\t<h1>\nTest line 1<br>Test 2</h1> ",
-			"\n* Test line1 Test 2\n",
+			"* Test line 1 Test 2",
 		},
 		{
 			"<h1>Test</h1> <h1>Test</h1>",
-			"\n* Test\n* Test\n",
+			"* Test\n\n* Test",
 		},
 		{
 			"<h2>Test</h2>",
-			"\n** Test\n",
+			"** Test",
 		},
 		{
 			"<h1><a href='http://example.com/'>Test</a></h1>",
-			"\n* [[http://example.com/][Test]]\n",
+			"* [[http://example.com/][Test]]",
 		},
 		{
 			"<h3> <span class='a'>Test </span></h3>",
-			"\n*** Test\n----",
+			"*** Test",
 		},
 	}
 
@@ -675,54 +677,62 @@ func TestBlockquotes(t *testing.T) {
 		{
 			"<div>level 0<blockquote>level 1<br><blockquote>level 2</blockquote>level 1</blockquote><div>level 0</div></div>",
 			`level 0
-#+BEGIN_QUOTE
+
+#+begin_quote
 level 1
+
 level 2
+
 level 1
-#+END_QUOTE
+#+end_quote
+
 level 0`,
 		},
 		{
 			"<blockquote>Test</blockquote>Test",
-			`#+BEGIN_QUOTE
+			`#+begin_quote
 Test
-#+END_QUOTE
+#+end_quote
+
 Test`,
 		},
 		{
 			"\t<blockquote> \nTest<br></blockquote> ",
-			`#+BEGIN_QUOTE
+			`#+begin_quote
 Test
 
-#+END_QUOTE`,
+#+end_quote`,
 		},
 		{
 			"\t<blockquote> \nTest line 1<br>Test 2</blockquote> ",
-			`#+BEGIN_QUOTE
+			`#+begin_quote
 Test line 1
 Test 2
-#+END_QUOTE`,
+#+end_quote`,
 		},
 		{
 			"<blockquote>Test</blockquote> <blockquote>Test</blockquote> Other Test",
-			`#+BEGIN_QUOTE
+			`#+begin_quote
 Test
-#+END_QUOTE
-#+BEGIN_QUOTE
-Other Test
-#+END_QUOTE`,
+#+end_quote
+
+#+begin_quote
+Test
+#+end_quote
+
+Other Test`,
 		},
 		{
 			"<blockquote>Lorem ipsum Commodo id consectetur pariatur ea occaecat minim aliqua ad sit consequat quis ex commodo Duis incididunt eu mollit consectetur fugiat voluptate dolore in pariatur in commodo occaecat Ut occaecat velit esse labore aute quis commodo non sit dolore officia Excepteur cillum amet cupidatat culpa velit labore ullamco dolore mollit elit in aliqua dolor irure do</blockquote>",
-			`#+BEGIN_QUOTE
-Lorem ipsum Commodo id consectetur pariatur ea occaecat minim aliqua ad sit consequat quis ex commodo Duis incididunt eu mollit consectetur fugiat\n> voluptate dolore in pariatur in commodo occaecat Ut occaecat velit esse\n> labore aute quis commodo non sit dolore officia Excepteur cillum amet\n> cupidatat culpa velit labore ullamco dolore mollit elit in aliqua dolor irure do
-#+END_QUOTE`,
+			`#+begin_quote
+Lorem ipsum Commodo id consectetur pariatur ea occaecat minim aliqua ad sit consequat quis ex commodo Duis incididunt eu mollit consectetur fugiat voluptate dolore in pariatur in commodo occaecat Ut occaecat velit esse labore aute quis commodo non sit dolore officia Excepteur cillum amet cupidatat culpa velit labore ullamco dolore mollit elit in aliqua dolor irure do
+#+end_quote`,
 		},
 		{
 			"<blockquote>Lorem<b>ipsum</b><b>Commodo</b><b>id</b><b>consectetur</b><b>pariatur</b><b>ea</b><b>occaecat</b><b>minim</b><b>aliqua</b><b>ad</b><b>sit</b><b>consequat</b><b>quis</b><b>ex</b><b>commodo</b><b>Duis</b><b>incididunt</b><b>eu</b><b>mollit</b><b>consectetur</b><b>fugiat</b><b>voluptate</b><b>dolore</b><b>in</b><b>pariatur</b><b>in</b><b>commodo</b><b>occaecat</b><b>Ut</b><b>occaecat</b><b>velit</b><b>esse</b><b>labore</b><b>aute</b><b>quis</b><b>commodo</b><b>non</b><b>sit</b><b>dolore</b><b>officia</b><b>Excepteur</b><b>cillum</b><b>amet</b><b>cupidatat</b><b>culpa</b><b>velit</b><b>labore</b><b>ullamco</b><b>dolore</b><b>mollit</b><b>elit</b><b>in</b><b>aliqua</b><b>dolor</b><b>irure</b><b>do</b></blockquote>",
-			`#+BEGIN_QUOTE
+			`#+begin_quote
 Lorem *ipsum* *Commodo* *id* *consectetur* *pariatur* *ea* *occaecat* *minim* *aliqua* *ad* *sit* *consequat* *quis* *ex* *commodo* *Duis* *incididunt* *eu* *mollit* *consectetur* *fugiat* *voluptate* *dolore* *in* *pariatur* *in* *commodo* *occaecat* *Ut* *occaecat* *velit* *esse* *labore* *aute* *quis* *commodo* *non* *sit* *dolore* *officia* *Excepteur* *cillum* *amet* *cupidatat* *culpa* *velit* *labore* *ullamco* *dolore* *mollit* *elit* *in* *aliqua* *dolor* *irure* *do*
-#+END_QUOTE`,
+#+end_quote`,
 		},
 	}
 
@@ -844,21 +854,19 @@ List:
 		        <li>Baz</li>
 			</ul>
 		`,
-			`hi
-hello [[https://google.com][google]]
-
-test
+			`hi hello [[https://google.com][google]] test
 
 List:
 
 - [[foo][Foo]]
-- [[http://www.microshwhat.com/bar/soapy][Barsoap]]
+- [[/		                bar/baz][Bar]]
 - Baz`,
 		},
 	}
 
 	for _, testCase := range testCases {
-		if msg, err := wantRegExp(testCase.input, testCase.expr); err != nil {
+		if msg, err := wantString(testCase.input, testCase.expr); err != nil {
+			// if msg, err := wantRegExp(testCase.input, testCase.expr); err != nil {
 			t.Error(err)
 		} else if len(msg) > 0 {
 			t.Log(msg)
@@ -1016,24 +1024,23 @@ func Example() {
 	fmt.Println(text)
 
 	// Output:
-	// Mega Service ( http://jaytaylor.com/ )
 	//
-	// ******************************************
-	// Welcome to your new account on my service!
-	// ******************************************
+	// #+NAME: Mega Service
+	// [[/logo-image.jpg]]
+	// [[http://jaytaylor.com/][Mega Service]]
+	//
+	// * Welcome to your new account on my service!
 	//
 	// Here is some more information:
 	//
-	// * Link 1: Example.com ( https://example.com )
-	// * Link 2: Example2.com ( https://example2.com )
-	// * Something else
+	// - Link 1: [[https://example.com][Example.com]]
+	// - Link 2: [[https://example2.com][Example2.com]]
+	// - Something else
 	//
-	// +-------------+-------------+
 	// |  HEADER 1   |  HEADER 2   |
 	// +-------------+-------------+
 	// | Row 1 Col 1 | Row 1 Col 2 |
 	// | Row 2 Col 1 | Row 2 Col 2 |
 	// +-------------+-------------+
 	// |  FOOTER 1   |  FOOTER 2   |
-	// +-------------+-------------+
 }

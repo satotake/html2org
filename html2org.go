@@ -1,7 +1,8 @@
-package html2text
+package html2org
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"regexp"
 	"strings"
@@ -18,6 +19,7 @@ type Options struct {
 	PrettyTables        bool                 // Turns on pretty ASCII rendering for table elements.
 	PrettyTablesOptions *PrettyTablesOptions // Configures pretty ASCII rendering for table elements.
 	OmitLinks           bool                 // Turns on omitting links
+	BreakLongLines      bool
 }
 
 // PrettyTablesOptions overrides tablewriter behaviors
@@ -38,6 +40,7 @@ type PrettyTablesOptions struct {
 	RowLine              bool
 	AutoMergeCells       bool
 	Borders              tablewriter.Border
+	OrgFormat            bool
 }
 
 // NewPrettyTablesOptions creates PrettyTablesOptions with default settings
@@ -59,6 +62,7 @@ func NewPrettyTablesOptions() *PrettyTablesOptions {
 		RowLine:              false,
 		AutoMergeCells:       false,
 		Borders:              tablewriter.Border{Left: true, Right: true, Bottom: true, Top: true},
+		OrgFormat:            true,
 	}
 }
 
@@ -150,50 +154,42 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 	case atom.Br:
 		return ctx.emit("\n")
 
-	case atom.H1, atom.H2, atom.H3:
+	case atom.H1, atom.H2, atom.H3, atom.H4, atom.H5, atom.H6:
 		subCtx := textifyTraverseContext{}
 		if err := subCtx.traverseChildren(node); err != nil {
 			return err
 		}
+		order := []atom.Atom{atom.H1, atom.H2, atom.H3, atom.H4, atom.H5, atom.H6}
 
-		str := subCtx.buf.String()
-		dividerLen := 0
-		for _, line := range strings.Split(str, "\n") {
-			if lineLen := len([]rune(line)); lineLen-1 > dividerLen {
-				dividerLen = lineLen - 1
+		var stars string
+		for i, a := range order {
+			if node.DataAtom == a {
+				stars = strings.Repeat("*", i+1)
 			}
 		}
-		var divider string
-		if node.DataAtom == atom.H1 {
-			divider = strings.Repeat("*", dividerLen)
-		} else {
-			divider = strings.Repeat("-", dividerLen)
-		}
 
-		if node.DataAtom == atom.H3 {
-			return ctx.emit("\n\n" + str + "\n" + divider + "\n\n")
-		}
-		return ctx.emit("\n\n" + divider + "\n" + str + "\n" + divider + "\n\n")
+		str := strings.ReplaceAll(subCtx.buf.String(), "\n", " ")
+		return ctx.emit("\n" + stars + str + "\n")
 
 	case atom.Blockquote:
 		ctx.blockquoteLevel++
-		ctx.prefix = strings.Repeat(">", ctx.blockquoteLevel) + " "
 		if err := ctx.emit("\n"); err != nil {
 			return err
 		}
 		if ctx.blockquoteLevel == 1 {
-			if err := ctx.emit("\n"); err != nil {
+			if err := ctx.emit("\n#+begin_quote\n"); err != nil {
 				return err
 			}
 		}
 		if err := ctx.traverseChildren(node); err != nil {
 			return err
 		}
-		ctx.blockquoteLevel--
-		ctx.prefix = strings.Repeat(">", ctx.blockquoteLevel)
-		if ctx.blockquoteLevel > 0 {
-			ctx.prefix += " "
+		if ctx.blockquoteLevel == 1 {
+			if err := ctx.emit("\n#+end_quote\n"); err != nil {
+				return err
+			}
 		}
+		ctx.blockquoteLevel--
 		return ctx.emit("\n\n")
 
 	case atom.Div:
@@ -213,7 +209,7 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 		return err
 
 	case atom.Li:
-		if err := ctx.emit("* "); err != nil {
+		if err := ctx.emit("- "); err != nil {
 			return err
 		}
 
@@ -239,27 +235,42 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 			linkText = node.FirstChild.Data
 		}
 
+		subCtx := textifyTraverseContext{}
+
 		// If image is the only child, take its alt text as the link text.
 		if img := node.FirstChild; img != nil && node.LastChild == img && img.DataAtom == atom.Img {
 			if altText := getAttrVal(img, "alt"); altText != "" {
-				if err := ctx.emit(altText); err != nil {
+				linkText = altText
+				if err := ctx.traverseChildren(node); err != nil {
 					return err
 				}
 			}
-		} else if err := ctx.traverseChildren(node); err != nil {
-			return err
+		} else {
+			if err := subCtx.traverseChildren(node); err != nil {
+				return err
+			}
+			linkText = strings.TrimSpace(subCtx.buf.String())
 		}
 
 		hrefLink := ""
-		if attrVal := getAttrVal(node, "href"); attrVal != "" {
-			attrVal = ctx.normalizeHrefLink(attrVal)
-			// Don't print link href if it matches link element content or if the link is empty.
-			if !ctx.options.OmitLinks && attrVal != "" && linkText != attrVal {
-				hrefLink = "( " + attrVal + " )"
-			}
+		if !ctx.options.OmitLinks {
+			hrefLink = ctx.normalizeHrefLink(strings.TrimSpace(getAttrVal(node, "href")))
 		}
 
-		return ctx.emit(hrefLink)
+		res := ""
+		if linkText == "" && hrefLink == "" {
+			res = ""
+		} else if linkText == hrefLink {
+			res = fmt.Sprintf("[[%s]]", linkText)
+		} else if linkText != "" && hrefLink != "" {
+			res = fmt.Sprintf("[[%s][%s]]", hrefLink, linkText)
+		} else if linkText == "" && hrefLink != "" {
+			res = fmt.Sprintf("[[%s]]", hrefLink)
+		} else if linkText != "" && hrefLink == "" {
+			res = fmt.Sprintf("%s", linkText)
+		}
+
+		return ctx.emit(res)
 
 	case atom.P, atom.Ul:
 		return ctx.paragraphHandler(node)
@@ -272,9 +283,24 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 		}
 		return ctx.traverseChildren(node)
 
+	case atom.Img:
+		alt := getAttrVal(node, "alt")
+		src := getAttrVal(node, "src")
+		if src == "" {
+			return ctx.emit("")
+		} else if alt != "" {
+			return ctx.emit(fmt.Sprintf(`
+#+NAME: %s
+[[%s]]
+`, alt, src))
+		}
+		return ctx.emit(fmt.Sprintf("[[%s]]\n", src))
+
 	case atom.Pre:
 		ctx.isPre = true
+		ctx.emit("\n#+begin_verse\n")
 		err := ctx.traverseChildren(node)
+		ctx.emit("\n#+end_verse\n")
 		ctx.isPre = false
 		return err
 
@@ -345,7 +371,30 @@ func (ctx *textifyTraverseContext) handleTableElement(node *html.Node) error {
 
 		// Render the table using ASCII.
 		table.Render()
-		if err := ctx.emit(buf.String()); err != nil {
+		s := buf.String()
+		// fmt.Println("nil?", )
+
+		if ctx.options.PrettyTablesOptions == nil || (ctx.options.PrettyTablesOptions != nil && ctx.options.PrettyTablesOptions.OrgFormat) {
+			s = strings.TrimSuffix(s, "\n")
+			centerSep := "+"
+			if ctx.options.PrettyTablesOptions != nil {
+				centerSep = ctx.options.PrettyTablesOptions.CenterSeparator
+			}
+			firstIndex := strings.Index(s, "\n")
+			lastIndex := strings.LastIndex(s, "\n")
+
+			firstLine := s[0:firstIndex]
+			lastLine := s[lastIndex:]
+
+			if strings.Contains(lastLine, centerSep) {
+				s = s[0:lastIndex]
+			}
+			if strings.Contains(firstLine, centerSep) {
+				s = s[firstIndex:]
+			}
+		}
+
+		if err := ctx.emit(s); err != nil {
 			return err
 		}
 
@@ -458,7 +507,7 @@ const maxLineLen = 74
 
 func (ctx *textifyTraverseContext) breakLongLines(data string) []string {
 	// Only break lines when in blockquotes.
-	if ctx.blockquoteLevel == 0 {
+	if ctx.blockquoteLevel == 0 || !ctx.options.BreakLongLines {
 		return []string{data}
 	}
 	var (
@@ -499,7 +548,7 @@ func (ctx *textifyTraverseContext) breakLongLines(data string) []string {
 
 func (ctx *textifyTraverseContext) normalizeHrefLink(link string) string {
 	link = strings.TrimSpace(link)
-	link = strings.TrimPrefix(link, "mailto:")
+	link = strings.ReplaceAll(link, "\n", "")
 	return link
 }
 
