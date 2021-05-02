@@ -1,6 +1,6 @@
 module github.com/satotake/html2org
 
-go 1.15
+go 1.16
 
 require (
 	github.com/olekukonko/tablewriter v0.0.5
