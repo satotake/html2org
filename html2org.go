@@ -309,7 +309,7 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 		ctx.isPre = true
 		ctx.emit("\n#+begin_verse\n")
 		err := ctx.traverseChildren(node)
-		ctx.emit("\n#+end_verse\n")
+		ctx.emit("#+end_verse\n")
 		ctx.isPre = false
 		return err
 
@@ -487,7 +487,7 @@ func (ctx *textifyTraverseContext) emit(data string) error {
 	for _, line := range lines {
 		runes := []rune(line)
 		startsWithSpace := unicode.IsSpace(runes[0])
-		if !startsWithSpace && !ctx.endsWithSpace && !strings.HasPrefix(data, ".") {
+		if !startsWithSpace && !ctx.endsWithSpace && !strings.HasPrefix(data, ".") && !ctx.isPre {
 			if err = ctx.buf.WriteByte(' '); err != nil {
 				return err
 			}
