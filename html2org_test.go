@@ -384,6 +384,26 @@ func TestStrippingLists(t *testing.T) {
 	}
 }
 
+func TestNoscripts(t *testing.T) {
+	testCases := []struct {
+		input  string
+		output string
+	}{
+		{
+			`<body><noscript><style>div {display: none}</style> <div>Test</div></noscript></body>`,
+			`Test`,
+		},
+	}
+
+	for _, testCase := range testCases {
+		if msg, err := wantString(testCase.input, testCase.output, Options{ShowNoscripts: true}); err != nil {
+			t.Error(err)
+		} else if len(msg) > 0 {
+			t.Log(msg)
+		}
+	}
+}
+
 func TestBaseURLOption(t *testing.T) {
 	testCases := []struct {
 		baseURL string

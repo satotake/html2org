@@ -12,7 +12,8 @@ import (
 	"github.com/satotake/html2org"
 )
 
-const version = "v0.0.3"
+// TODO
+const version = "v0.0.4"
 
 type Option struct {
 	Input        string
@@ -20,6 +21,7 @@ type Option struct {
 	Version      bool
 	BaseURL      string
 	PrettyTables bool
+	Noscript     bool
 }
 
 func parseFlag() *Option {
@@ -28,9 +30,10 @@ func parseFlag() *Option {
 	version := flag.Bool("v", false, "show version")
 	baseURL := flag.String("u", "", "set BaseURL")
 	table := flag.Bool("t", false, "enable PrettyTables option")
+	noscript := flag.Bool("noscript", false, "show content inside noscript tag")
 	flag.Parse()
 	return &Option{
-		*input, *output, *version, *baseURL, *table,
+		*input, *output, *version, *baseURL, *table, *noscript,
 	}
 }
 
@@ -57,7 +60,11 @@ func main() {
 		defer r.Close()
 	}
 
-	res, err := html2org.FromReader(r, html2org.Options{BaseURL: opt.BaseURL, PrettyTables: opt.PrettyTables})
+	res, err := html2org.FromReader(r, html2org.Options{
+		BaseURL:       opt.BaseURL,
+		PrettyTables:  opt.PrettyTables,
+		ShowNoscripts: opt.Noscript,
+	})
 	check(err)
 	res = res + "\n"
 

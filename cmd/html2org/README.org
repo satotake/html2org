@@ -19,6 +19,8 @@ html2org <flags>
     enable PrettyTables option
   -v
     show version
+  -noscript
+    show content inside noscript tag
   -h
     show usage
 #+end_src

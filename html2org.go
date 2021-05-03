@@ -22,6 +22,7 @@ type Options struct {
 	OmitLinks           bool                 // Turns on omitting links
 	BreakLongLines      bool
 	BaseURL             string
+	ShowNoscripts       bool
 }
 
 // PrettyTablesOptions overrides tablewriter behaviors
@@ -332,6 +333,16 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 
 		ctx.isPre = false
 		return err
+
+	case atom.Noscript:
+		if ctx.options.ShowNoscripts && node.FirstChild != nil {
+			s, err := FromString(node.FirstChild.Data)
+			if err != nil {
+				return err
+			}
+			ctx.emit(s)
+		}
+		return nil
 
 	case atom.Style, atom.Script, atom.Head:
 		// Ignore the subtree.
