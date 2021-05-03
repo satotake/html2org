@@ -500,7 +500,7 @@ func TestLinks(t *testing.T) {
 		},
 		{
 			`<a href="http://example.com"><br><h3>Heading</h3><div></div></a>`,
-			`*** Heading  [[http://example.com][Link]]`,
+			`*** Heading [[http://example.com][Link]]`,
 		},
 	}
 
@@ -1029,6 +1029,30 @@ output:
 		)
 	}
 	return msg, nil
+}
+
+func TestCleanSpacing(t *testing.T) {
+	testCases := []struct {
+		input  string
+		output string
+	}{
+		{
+			"\n foo bar  baz",
+			"foo bar baz",
+		},
+		{
+			"\n  \n\nfoo\nbar\nbaz\n\n",
+			"foo bar baz",
+		},
+	}
+
+	for _, testCase := range testCases {
+		got := cleanSpacing(testCase.input)
+		want := testCase.output
+		if got != want {
+			t.Errorf("\ngot : %q\nwant: %q", got, want)
+		}
+	}
 }
 
 func Example() {

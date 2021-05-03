@@ -258,7 +258,7 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 			if err := subCtx.traverseChildren(node); err != nil {
 				return err
 			}
-			ctx.emit(strings.ReplaceAll(subCtx.buf.String(), "\n", " "))
+			ctx.emit("\n" + cleanSpacing(subCtx.buf.String()))
 		} else {
 			subCtx := textifyTraverseContext{
 				options: ctx.options,
@@ -669,4 +669,15 @@ func containsBlockLevelAtom(node *html.Node) bool {
 		}
 	}
 	return false
+}
+
+func cleanSpacing(s string) string {
+	s = spacingRe.ReplaceAllString(s, " ")
+	var parts []string
+	for _, part := range strings.Split(s, " ") {
+		if part != "" {
+			parts = append(parts, part)
+		}
+	}
+	return strings.Join(parts, " ")
 }
