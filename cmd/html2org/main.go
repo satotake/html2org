@@ -12,13 +12,14 @@ import (
 	"github.com/satotake/html2org"
 )
 
-const version = "v0.0.1"
+const version = "v0.0.3"
 
 type Option struct {
-	Input   string
-	Output  string
-	Version bool
-	BaseURL string
+	Input        string
+	Output       string
+	Version      bool
+	BaseURL      string
+	PrettyTables bool
 }
 
 func parseFlag() *Option {
@@ -26,9 +27,10 @@ func parseFlag() *Option {
 	output := flag.String("o", "", "output file path (default stdout)")
 	version := flag.Bool("v", false, "show version")
 	baseURL := flag.String("u", "", "set BaseURL")
+	table := flag.Bool("t", false, "enable PrettyTables option")
 	flag.Parse()
 	return &Option{
-		*input, *output, *version, *baseURL,
+		*input, *output, *version, *baseURL, *table,
 	}
 }
 
@@ -55,7 +57,7 @@ func main() {
 		defer r.Close()
 	}
 
-	res, err := html2org.FromReader(r, html2org.Options{BaseURL: opt.BaseURL})
+	res, err := html2org.FromReader(r, html2org.Options{BaseURL: opt.BaseURL, PrettyTables: opt.PrettyTables})
 	check(err)
 	res = res + "\n"
 
