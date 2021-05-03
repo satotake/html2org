@@ -408,7 +408,7 @@ func TestBaseURLOption(t *testing.T) {
 		{
 			"http://example.com",
 			`<h2><a href="/foo/bar/"><div><span>Title</span><span>Sub</span></div></a></h2>`,
-			`** [[http://example.com/foo/bar/][Title Sub]]`,
+			`** Title Sub [[http://example.com/foo/bar/][Link]]`,
 		},
 	}
 
@@ -497,6 +497,10 @@ func TestLinks(t *testing.T) {
 		{
 			"<a href=\"http://www.google.com\" >http://www.google.com</a>",
 			`[[http://www.google.com]]`,
+		},
+		{
+			`<a href="http://example.com"><br><h3>Heading</h3><div></div></a>`,
+			`*** Heading  [[http://example.com][Link]]`,
 		},
 	}
 

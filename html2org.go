@@ -242,10 +242,6 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 			linkText = node.FirstChild.Data
 		}
 
-		subCtx := textifyTraverseContext{
-			options: ctx.options,
-		}
-
 		// If image is the only child, take its alt text as the link text.
 		if img := node.FirstChild; img != nil && node.LastChild == img && img.DataAtom == atom.Img {
 			if altText := getAttrVal(img, "alt"); altText != "" {
@@ -254,7 +250,19 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 					return err
 				}
 			}
+		} else if containsBlockLevelAtom(node) {
+			linkText = "Link"
+			subCtx := textifyTraverseContext{
+				options: ctx.options,
+			}
+			if err := subCtx.traverseChildren(node); err != nil {
+				return err
+			}
+			ctx.emit(strings.ReplaceAll(subCtx.buf.String(), "\n", " "))
 		} else {
+			subCtx := textifyTraverseContext{
+				options: ctx.options,
+			}
 			if err := subCtx.traverseChildren(node); err != nil {
 				return err
 			}
@@ -613,4 +621,52 @@ func getAttrVal(node *html.Node, attrName string) string {
 	}
 
 	return ""
+}
+
+var blockLevelAtoms = []atom.Atom{
+	atom.Address,
+	atom.Article,
+	atom.Aside,
+	atom.Blockquote,
+	atom.Canvas,
+	atom.Dd,
+	atom.Div,
+	atom.Dl,
+	atom.Dt,
+	atom.Fieldset,
+	atom.Figcaption,
+	atom.Figure,
+	atom.Footer,
+	atom.Form,
+	atom.H1,
+	atom.H2,
+	atom.H3,
+	atom.H4,
+	atom.H5,
+	atom.H6,
+	atom.Header,
+	atom.Hr,
+	atom.Li,
+	atom.Main,
+	atom.Nav,
+	atom.Noscript,
+	atom.Ol,
+	atom.P,
+	atom.Pre,
+	atom.Section,
+	atom.Table,
+	atom.Tfoot,
+	atom.Ul,
+	atom.Video,
+}
+
+func containsBlockLevelAtom(node *html.Node) bool {
+	for c := node.FirstChild; c != nil; c = c.NextSibling {
+		for _, a := range blockLevelAtoms {
+			if c.DataAtom == a {
+				return true
+			}
+		}
+	}
+	return false
 }
