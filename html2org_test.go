@@ -405,6 +405,11 @@ func TestBaseURLOption(t *testing.T) {
 			`<img src="hello.jpg">`,
 			`[[http://example.com/foo/hello.jpg]]`,
 		},
+		{
+			"http://example.com",
+			`<h2><a href="/foo/bar/"><div><span>Title</span><span>Sub</span></div></a></h2>`,
+			`** [[http://example.com/foo/bar/][Title Sub]]`,
+		},
 	}
 
 	for _, testCase := range testCases {

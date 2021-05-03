@@ -158,7 +158,9 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 		return ctx.emit("\n")
 
 	case atom.H1, atom.H2, atom.H3, atom.H4, atom.H5, atom.H6:
-		subCtx := textifyTraverseContext{}
+		subCtx := textifyTraverseContext{
+			options: ctx.options,
+		}
 		if err := subCtx.traverseChildren(node); err != nil {
 			return err
 		}
@@ -223,7 +225,9 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 		return ctx.emit("\n")
 
 	case atom.B, atom.Strong:
-		subCtx := textifyTraverseContext{}
+		subCtx := textifyTraverseContext{
+			options: ctx.options,
+		}
 		subCtx.endsWithSpace = true
 		if err := subCtx.traverseChildren(node); err != nil {
 			return err
@@ -238,7 +242,9 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 			linkText = node.FirstChild.Data
 		}
 
-		subCtx := textifyTraverseContext{}
+		subCtx := textifyTraverseContext{
+			options: ctx.options,
+		}
 
 		// If image is the only child, take its alt text as the link text.
 		if img := node.FirstChild; img != nil && node.LastChild == img && img.DataAtom == atom.Img {
@@ -387,7 +393,6 @@ func (ctx *textifyTraverseContext) handleTableElement(node *html.Node) error {
 		// Render the table using ASCII.
 		table.Render()
 		s := buf.String()
-		// fmt.Println("nil?", )
 
 		if ctx.options.PrettyTablesOptions == nil || (ctx.options.PrettyTablesOptions != nil && ctx.options.PrettyTablesOptions.OrgFormat) {
 			s = strings.TrimSuffix(s, "\n")
