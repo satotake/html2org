@@ -126,6 +126,7 @@ type textifyTraverseContext struct {
 	tableCtx        tableTraverseContext
 	options         Options
 	endsWithSpace   bool
+	endsWithNewLine bool
 	justClosedDiv   bool
 	blockquoteLevel int
 	lineLength      int
@@ -309,7 +310,12 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 		ctx.isPre = true
 		ctx.emit("\n#+begin_verse\n")
 		err := ctx.traverseChildren(node)
-		ctx.emit("#+end_verse\n")
+		if ctx.endsWithNewLine {
+			ctx.emit("#+end_verse\n")
+		} else {
+			ctx.emit("\n#+end_verse\n")
+		}
+
 		ctx.isPre = false
 		return err
 
@@ -494,6 +500,7 @@ func (ctx *textifyTraverseContext) emit(data string) error {
 			ctx.lineLength++
 		}
 		ctx.endsWithSpace = unicode.IsSpace(runes[len(runes)-1])
+		ctx.endsWithNewLine = runes[len(runes)-1] == '\n'
 		for _, c := range line {
 			if _, err = ctx.buf.WriteString(string(c)); err != nil {
 				return err
