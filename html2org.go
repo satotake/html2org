@@ -273,7 +273,9 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 			if err != nil {
 				return err
 			}
-			ctx.emit("\n" + cleanSpacing(subCtx.buf.String()))
+			// make multiline to single line
+			s := cleanSpacing(subCtx.buf.String())
+			ctx.emit("\n" + strings.TrimPrefix(s, " "))
 		} else {
 			subCtx, err := ctx.traverseWithSubContext(node)
 			if err != nil {
@@ -758,7 +760,9 @@ var blockLevelAtoms = map[atom.Atom]struct{}{
 func containsBlockLevelAtom(node *html.Node) bool {
 	for c := node.FirstChild; c != nil; c = c.NextSibling {
 		_, ok := blockLevelAtoms[c.DataAtom]
-		return ok
+		if ok {
+			return true
+		}
 	}
 	return false
 }
