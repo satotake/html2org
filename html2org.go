@@ -405,6 +405,14 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 
 		return nil
 
+	case atom.Title:
+		ctx.emit("#+TITLE: ")
+		err := ctx.traverseChildren(node)
+		if err != nil {
+			return nil
+		}
+		return ctx.emit("\n\n\n")
+
 	case atom.Noscript:
 		if ctx.options.ShowNoscripts && node.FirstChild != nil {
 			s, err := FromString(node.FirstChild.Data)
@@ -415,7 +423,7 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 		}
 		return nil
 
-	case atom.Style, atom.Script, atom.Head:
+	case atom.Style, atom.Script, atom.Meta, atom.Link:
 		// Ignore the subtree.
 		return nil
 

@@ -495,6 +495,34 @@ func TestNoscripts(t *testing.T) {
 	}
 }
 
+func TestTitles(t *testing.T) {
+	testCases := []struct {
+		input  string
+		output string
+	}{
+		{
+			`<title>My site</title>text`,
+			`#+TITLE: My site
+
+text`,
+		},
+		{
+			`<html><head><title>My site</title></head><body>body</body></html>`,
+			`#+TITLE: My site
+
+body`,
+		},
+	}
+
+	for _, testCase := range testCases {
+		if msg, err := wantString(testCase.input, testCase.output, Options{}); err != nil {
+			t.Error(err)
+		} else if len(msg) > 0 {
+			t.Log(msg)
+		}
+	}
+}
+
 func TestInputs(t *testing.T) {
 	testCases := []struct {
 		input  string
