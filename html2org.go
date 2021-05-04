@@ -92,7 +92,7 @@ func FromHTMLNode(doc *html.Node, o ...Options) (string, error) {
 	}
 
 	text := strings.TrimSpace(newlineRe.ReplaceAllString(
-		strings.Replace(ctx.buf.String(), "\n ", "\n", -1), "\n\n"),
+		ctx.buf.String(), "\n\n"),
 	)
 	return text, nil
 }
@@ -372,6 +372,7 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 		}
 		subCtx := textifyTraverseContext{
 			options: ctx.options,
+			isPre: ctx.isPre,
 		}
 		err := subCtx.traverseChildren(node)
 		if err != nil {

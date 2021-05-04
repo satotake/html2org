@@ -159,7 +159,7 @@ test 1   test 2
     <span class="nx">b1</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">([]</span><span class="kt">byte</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
 </pre>`,
 			`#+begin_src
-   b1 := make([]byte, 5)
+    b1 := make([]byte, 5)
 #+end_src`,
 		},
 	}
@@ -217,6 +217,18 @@ b := 2
 			`#+begin_src
 a := 1
 b := 2
+#+end_src`,
+		},
+		{
+			`<pre><code>func foo()  {
+    return 1
+}
+</code></pre>
+`,
+			`#+begin_src
+func foo()  {
+    return 1
+}
 #+end_src`,
 		},
 	}
