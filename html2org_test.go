@@ -317,10 +317,10 @@ Row-2-Col-1 Row-2-Col-2`,
 				</tbody>
 			</table>`,
 			`|  HEADER 1   |  HEADER 2   |
-+-------------+-------------+
+|-------------+-------------|
 | Row 1 Col 1 | Row 1 Col 2 |
 | Row 2 Col 1 | Row 2 Col 2 |
-+-------------+-------------+
+|-------------+-------------|
 |  FOOTER 1   |  FOOTER 2   |`,
 			`Header 1 Header 2
 Footer 1 Footer 2
@@ -357,17 +357,17 @@ Row 2 Col 1 Row 2 Col 2`,
 				</table>
 			</p>`,
 			`|  TABLE 1 HEADER 1   |  TABLE 1 HEADER 2   |
-+---------------------+---------------------+
+|---------------------+---------------------|
 | Table 1 Row 1 Col 1 | Table 1 Row 1 Col 2 |
 | Table 1 Row 2 Col 1 | Table 1 Row 2 Col 2 |
-+---------------------+---------------------+
+|---------------------+---------------------|
 |  TABLE 1 FOOTER 1   |  TABLE 1 FOOTER 2   |
 
 |  TABLE 2 HEADER 1   |  TABLE 2 HEADER 2   |
-+---------------------+---------------------+
+|---------------------+---------------------|
 | Table 2 Row 1 Col 1 | Table 2 Row 1 Col 2 |
 | Table 2 Row 2 Col 1 | Table 2 Row 2 Col 2 |
-+---------------------+---------------------+
+|---------------------+---------------------|
 |  TABLE 2 FOOTER 1   |  TABLE 2 FOOTER 2   |`,
 			`Table 1 Header 1 Table 1 Header 2
 Table 1 Footer 1 Table 1 Footer 2
@@ -402,15 +402,10 @@ Table 2 Row 2 Col 1 Table 2 Row 2 Col 2`,
 					<td>$1.99</td>
 				</tr>
 			</table>`,
-			`|  ITEM  |          DESCRIPTION           | PRICE  |
-+--------+--------------------------------+--------+
-| Golang | Open source programming        | $10.99 |
-|        | language that makes it easy    |        |
-|        | to build simple, reliable, and |        |
-|        | efficient software             |        |
-| Hermes | Programmatically create        | $1.99  |
-|        | beautiful e-mails using        |        |
-|        | Golang.                        |        |`,
+			`|  ITEM  |                                              DESCRIPTION                                              | PRICE  |
+|--------+-------------------------------------------------------------------------------------------------------+--------|
+| Golang | Open source programming language that makes it easy to build simple, reliable, and efficient software | $10.99 |
+| Hermes | Programmatically create beautiful e-mails using Golang.                                               | $1.99  |`,
 			`Item  Description  Price
 Golang  Open source programming language that makes it easy to build simple, reliable, and efficient software  $10.99
 Hermes  Programmatically create beautiful e-mails using Golang.  $1.99`,
@@ -685,8 +680,8 @@ func TestLinks(t *testing.T) {
 			`[[http://www.google.com]]`,
 		},
 		{
-			`<a href="http://example.com"><br><h3>Heading</h3><div></div></a>`,
-			`*** Heading [[http://example.com][Link]]`,
+			`text <a href="http://example.com"><br><h3>Heading</h3><div></div></a>`,
+			"text\n*** Heading [[http://example.com][Link]]",
 		},
 		{
 			`<p>(see <a href="http://example.com">Plain Lists</a>)</p>`,
@@ -1311,9 +1306,9 @@ func Example() {
 	// - Something else
 	//
 	// |  HEADER 1   |  HEADER 2   |
-	// +-------------+-------------+
+	// |-------------+-------------|
 	// | Row 1 Col 1 | Row 1 Col 2 |
 	// | Row 2 Col 1 | Row 2 Col 2 |
-	// +-------------+-------------+
+	// |-------------+-------------|
 	// |  FOOTER 1   |  FOOTER 2   |
 }

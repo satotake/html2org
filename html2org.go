@@ -57,7 +57,7 @@ type PrettyTablesOptions struct {
 func NewPrettyTablesOptions() *PrettyTablesOptions {
 	return &PrettyTablesOptions{
 		AutoFormatHeader:     true,
-		AutoWrapText:         true,
+		AutoWrapText:         false,
 		ReflowDuringAutoWrap: true,
 		ColWidth:             tablewriter.MAX_ROW_WIDTH,
 		ColumnSeparator:      tablewriter.COLUMN,
@@ -457,25 +457,29 @@ func (ctx *textifyTraverseContext) handleTableElement(node *html.Node) error {
 
 		buf := &bytes.Buffer{}
 		table := tablewriter.NewWriter(buf)
+		var options *PrettyTablesOptions
 		if ctx.options.PrettyTablesOptions != nil {
-			options := ctx.options.PrettyTablesOptions
-			table.SetAutoFormatHeaders(options.AutoFormatHeader)
-			table.SetAutoWrapText(options.AutoWrapText)
-			table.SetReflowDuringAutoWrap(options.ReflowDuringAutoWrap)
-			table.SetColWidth(options.ColWidth)
-			table.SetColumnSeparator(options.ColumnSeparator)
-			table.SetRowSeparator(options.RowSeparator)
-			table.SetCenterSeparator(options.CenterSeparator)
-			table.SetHeaderAlignment(options.HeaderAlignment)
-			table.SetFooterAlignment(options.FooterAlignment)
-			table.SetAlignment(options.Alignment)
-			table.SetColumnAlignment(options.ColumnAlignment)
-			table.SetNewLine(options.NewLine)
-			table.SetHeaderLine(options.HeaderLine)
-			table.SetRowLine(options.RowLine)
-			table.SetAutoMergeCells(options.AutoMergeCells)
-			table.SetBorders(options.Borders)
+			options = ctx.options.PrettyTablesOptions
+		} else {
+			options = NewPrettyTablesOptions()
 		}
+		table.SetAutoFormatHeaders(options.AutoFormatHeader)
+		table.SetAutoWrapText(options.AutoWrapText)
+		table.SetReflowDuringAutoWrap(options.ReflowDuringAutoWrap)
+		table.SetColWidth(options.ColWidth)
+		table.SetColumnSeparator(options.ColumnSeparator)
+		table.SetRowSeparator(options.RowSeparator)
+		table.SetCenterSeparator(options.CenterSeparator)
+		table.SetHeaderAlignment(options.HeaderAlignment)
+		table.SetFooterAlignment(options.FooterAlignment)
+		table.SetAlignment(options.Alignment)
+		table.SetColumnAlignment(options.ColumnAlignment)
+		table.SetNewLine(options.NewLine)
+		table.SetHeaderLine(options.HeaderLine)
+		table.SetRowLine(options.RowLine)
+		table.SetAutoMergeCells(options.AutoMergeCells)
+		table.SetBorders(options.Borders)
+
 		table.SetHeader(ctx.tableCtx.header)
 		table.SetFooter(ctx.tableCtx.footer)
 		table.AppendBulk(ctx.tableCtx.body)
@@ -484,12 +488,13 @@ func (ctx *textifyTraverseContext) handleTableElement(node *html.Node) error {
 		table.Render()
 		s := buf.String()
 
-		if ctx.options.PrettyTablesOptions == nil || (ctx.options.PrettyTablesOptions != nil && ctx.options.PrettyTablesOptions.OrgFormat) {
+		if options.OrgFormat {
 			s = strings.TrimSuffix(s, "\n")
-			centerSep := "+"
-			if ctx.options.PrettyTablesOptions != nil {
-				centerSep = ctx.options.PrettyTablesOptions.CenterSeparator
-			}
+
+			// remove top, bottom boarders
+			// if options.Borders are used, footer format is invalid as org.
+			// thus delete here
+			centerSep := options.CenterSeparator
 			firstIndex := strings.Index(s, "\n")
 			lastIndex := strings.LastIndex(s, "\n")
 
@@ -502,6 +507,10 @@ func (ctx *textifyTraverseContext) handleTableElement(node *html.Node) error {
 			if strings.Contains(firstLine, centerSep) {
 				s = s[firstIndex:]
 			}
+
+			// change center sep with ColumnSeparator on the left/right borders
+			s = strings.ReplaceAll(s, "\n+", "\n" + options.ColumnSeparator)
+			s = strings.ReplaceAll(s, "+\n", options.ColumnSeparator + "\n")
 		}
 
 		if err := ctx.emit(s); err != nil {
