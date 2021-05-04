@@ -91,9 +91,11 @@ func FromHTMLNode(doc *html.Node, o ...Options) (string, error) {
 		return "", err
 	}
 
-	text := strings.TrimSpace(newlineRe.ReplaceAllString(
-		ctx.buf.String(), "\n\n"),
-	)
+	text := ctx.buf.String()
+	text = trailingSpaceRe.ReplaceAllString(text, "\n")
+	text = newlineRe.ReplaceAllString(text, "\n\n")
+	text = normalizeNonBreakingSpace(text)
+	text = strings.TrimSpace(text)
 	return text, nil
 }
 
@@ -124,6 +126,7 @@ func FromString(input string, options ...Options) (string, error) {
 var (
 	spacingRe = regexp.MustCompile(`[ \r\n\t]+`)
 	newlineRe = regexp.MustCompile(`\n\n+`)
+	trailingSpaceRe = regexp.MustCompile(` +\n`)
 )
 
 // traverseTableCtx holds text-related context.
@@ -158,6 +161,15 @@ func (tableCtx *tableTraverseContext) init() {
 	tableCtx.tmpRow = 0
 }
 
+func (ctx *textifyTraverseContext) traverseWithSubContext (node *html.Node) (textifyTraverseContext, error) {
+	subCtx := textifyTraverseContext{
+		options: ctx.options,
+		isPre: ctx.isPre,
+	}
+	err := subCtx.traverseChildren(node)
+	return subCtx, err
+}
+
 func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 	ctx.justClosedDiv = false
 
@@ -166,12 +178,6 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 		return ctx.emit("\n")
 
 	case atom.H1, atom.H2, atom.H3, atom.H4, atom.H5, atom.H6:
-		subCtx := textifyTraverseContext{
-			options: ctx.options,
-		}
-		if err := subCtx.traverseChildren(node); err != nil {
-			return err
-		}
 		order := []atom.Atom{atom.H1, atom.H2, atom.H3, atom.H4, atom.H5, atom.H6}
 
 		var stars string
@@ -181,8 +187,13 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 			}
 		}
 
-		str := strings.ReplaceAll(subCtx.buf.String(), "\n", " ")
-		return ctx.emit("\n" + stars + str + "\n")
+		subCtx, err := ctx.traverseWithSubContext(node)
+		if err != nil {
+			return err
+		}
+
+		str := strings.TrimSpace(cleanSpacing(subCtx.buf.String()))
+		return ctx.emit("\n" + stars + " " + str + "\n")
 
 	case atom.Blockquote:
 		ctx.blockquoteLevel++
@@ -222,23 +233,21 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 		return err
 
 	case atom.Li:
-		if err := ctx.emit("- "); err != nil {
-			return err
+		ctx.prefix = "- "
+		if !ctx.endsWithNewLine {
+			ctx.emit("\n")
 		}
 
 		if err := ctx.traverseChildren(node); err != nil {
 			return err
 		}
-
+		ctx.prefix = ""
 		return ctx.emit("\n")
 
 	case atom.B, atom.Strong:
-		subCtx := textifyTraverseContext{
-			options: ctx.options,
-		}
-		subCtx.endsWithSpace = true
-		if err := subCtx.traverseChildren(node); err != nil {
-			return err
+		subCtx, err := ctx.traverseWithSubContext(node)
+		if err != nil {
+			return nil
 		}
 		str := subCtx.buf.String()
 		return ctx.emit("*" + str + "*")
@@ -260,18 +269,14 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 			}
 		} else if containsBlockLevelAtom(node) {
 			linkText = "Link"
-			subCtx := textifyTraverseContext{
-				options: ctx.options,
-			}
-			if err := subCtx.traverseChildren(node); err != nil {
+			subCtx, err := ctx.traverseWithSubContext(node)
+			if err != nil {
 				return err
 			}
 			ctx.emit("\n" + cleanSpacing(subCtx.buf.String()))
 		} else {
-			subCtx := textifyTraverseContext{
-				options: ctx.options,
-			}
-			if err := subCtx.traverseChildren(node); err != nil {
+			subCtx, err := ctx.traverseWithSubContext(node)
+			if err != nil {
 				return err
 			}
 			linkText = strings.TrimSpace(subCtx.buf.String())
@@ -310,7 +315,22 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 		} else if node.DataAtom == atom.Table {
 			return ctx.paragraphHandler(node)
 		}
-		return ctx.traverseChildren(node)
+
+		if err := ctx.traverseChildren(node); err != nil {
+			return err
+		}
+
+		if node.DataAtom == atom.Tr {
+			return ctx.emit("\n")
+		}
+
+		if node.DataAtom == atom.Td || node.DataAtom == atom.Th {
+			return ctx.emit(" ")
+		}
+
+		return nil
+
+
 
 	case atom.Input:
 		t := getAttrVal(node, "type")
@@ -370,11 +390,8 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 		if ctx.isPre {
 			return ctx.traverseChildren(node)
 		}
-		subCtx := textifyTraverseContext{
-			options: ctx.options,
-			isPre: ctx.isPre,
-		}
-		err := subCtx.traverseChildren(node)
+
+		subCtx, err := ctx.traverseWithSubContext(node)
 		if err != nil {
 			return err
 		}
@@ -541,7 +558,7 @@ func (ctx *textifyTraverseContext) traverse(node *html.Node) error {
 		if ctx.isPre {
 			data = node.Data
 		} else {
-			data = strings.TrimSpace(spacingRe.ReplaceAllString(node.Data, " "))
+			data = cleanSpacing(node.Data)
 		}
 		return ctx.emit(data)
 
@@ -570,15 +587,21 @@ func (ctx *textifyTraverseContext) emit(data string) error {
 	)
 	for _, line := range lines {
 		runes := []rune(line)
-		startsWithSpace := unicode.IsSpace(runes[0])
-		if !startsWithSpace && !ctx.endsWithSpace && !strings.HasPrefix(data, ".") && !ctx.isPre {
-			if err = ctx.buf.WriteByte(' '); err != nil {
-				return err
+
+		if !ctx.isPre && ctx.endsWithNewLine {
+			line = strings.TrimPrefix(line, " ")
+			if ctx.prefix != "" {
+				ctx.endsWithNewLine = false
+				if _, err = ctx.buf.WriteString(ctx.prefix); err != nil {
+					return err
+				}
 			}
-			ctx.lineLength++
 		}
-		ctx.endsWithSpace = unicode.IsSpace(runes[len(runes)-1])
-		ctx.endsWithNewLine = runes[len(runes)-1] == '\n'
+
+		if line != "" {
+			ctx.endsWithNewLine = runes[len(runes)-1] == '\n'
+		}
+
 		for _, c := range line {
 			if _, err = ctx.buf.WriteString(string(c)); err != nil {
 				return err
@@ -586,11 +609,6 @@ func (ctx *textifyTraverseContext) emit(data string) error {
 			ctx.lineLength++
 			if c == '\n' {
 				ctx.lineLength = 0
-				if ctx.prefix != "" {
-					if _, err = ctx.buf.WriteString(ctx.prefix); err != nil {
-						return err
-					}
-				}
 			}
 		}
 	}
@@ -742,11 +760,32 @@ func containsBlockLevelAtom(node *html.Node) bool {
 
 func cleanSpacing(s string) string {
 	s = spacingRe.ReplaceAllString(s, " ")
-	var parts []string
-	for _, part := range strings.Split(s, " ") {
-		if part != "" {
-			parts = append(parts, part)
+	lastIsSpace := false
+	buf := bytes.Buffer{}
+	for _, c := range s {
+		spaceRepeated := lastIsSpace && c == ' '
+		if !spaceRepeated {
+			buf.WriteRune(c)
+		}
+
+		if c == ' ' {
+			lastIsSpace = true
+		} else {
+			lastIsSpace = false
 		}
 	}
-	return strings.Join(parts, " ")
+	return buf.String()
+}
+
+func normalizeNonBreakingSpace (s string) string {
+	buf := bytes.Buffer{}
+	for _, c := range s {
+		// non-breaking space
+		if c == 160 {
+			buf.WriteRune(' ')
+		} else {
+			buf.WriteRune(c)
+		}
+	}
+	return buf.String()
 }

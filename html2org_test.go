@@ -85,7 +85,12 @@ func TestStrippingWhitespace(t *testing.T) {
 		},
 		{
 			"test&nbsp;&nbsp;&nbsp; text&nbsp;",
-			"test    text",
+			"test    text",
+			// normal whitespace:30
+		},
+		{
+			`<p>This is &lsquo;<span>foo</span>&rsquo;.</p>`,
+			`This is ‘foo’.`,
 		},
 	}
 
@@ -201,7 +206,7 @@ func TestCodeRelatedTags(t *testing.T) {
 		},
 		// multiple line
 		{
-			`<p>Multi-line <tt class="key">teletype<br>TELETYPE</tt> part.`,
+			`<p>Multi-line<tt class="key">teletype<br>TELETYPE</tt> part.`,
 			`Multi-line
 #+begin_src
 teletype
@@ -266,7 +271,7 @@ func TestTables(t *testing.T) {
 			// | row1 |
 			// | row2 |
 			"| row1 |\n| row2 |",
-			"row1 row2",
+			"row1\nrow2",
 		},
 		{
 			`<table>
@@ -285,7 +290,8 @@ func TestTables(t *testing.T) {
 
 Row-1-Col-1-Msg2
 
-Row-1-Col-2 Row-2-Col-1 Row-2-Col-2`,
+Row-1-Col-2
+Row-2-Col-1 Row-2-Col-2`,
 		},
 		{
 			`<table>
@@ -295,7 +301,7 @@ Row-1-Col-2 Row-2-Col-1 Row-2-Col-2`,
 			// | cell1-1 | cell1-2 |
 			// | cell2-1 | cell2-2 |
 			"| cell1-1 | cell1-2 |\n| cell2-1 | cell2-2 |",
-			"cell1-1 cell1-2 cell2-1 cell2-2",
+			"cell1-1 cell1-2\ncell2-1 cell2-2",
 		},
 		{
 			`<table>
@@ -316,7 +322,10 @@ Row-1-Col-2 Row-2-Col-1 Row-2-Col-2`,
 | Row 2 Col 1 | Row 2 Col 2 |
 +-------------+-------------+
 |  FOOTER 1   |  FOOTER 2   |`,
-			"Header 1 Header 2 Footer 1 Footer 2 Row 1 Col 1 Row 1 Col 2 Row 2 Col 1 Row 2 Col 2",
+			`Header 1 Header 2
+Footer 1 Footer 2
+Row 1 Col 1 Row 1 Col 2
+Row 2 Col 1 Row 2 Col 2`,
 		},
 		// Two tables in same HTML (goal is to test that context is
 		// reinitialized correctly).
@@ -360,9 +369,15 @@ Row-1-Col-2 Row-2-Col-1 Row-2-Col-2`,
 | Table 2 Row 2 Col 1 | Table 2 Row 2 Col 2 |
 +---------------------+---------------------+
 |  TABLE 2 FOOTER 1   |  TABLE 2 FOOTER 2   |`,
-			`Table 1 Header 1 Table 1 Header 2 Table 1 Footer 1 Table 1 Footer 2 Table 1 Row 1 Col 1 Table 1 Row 1 Col 2 Table 1 Row 2 Col 1 Table 1 Row 2 Col 2
+			`Table 1 Header 1 Table 1 Header 2
+Table 1 Footer 1 Table 1 Footer 2
+Table 1 Row 1 Col 1 Table 1 Row 1 Col 2
+Table 1 Row 2 Col 1 Table 1 Row 2 Col 2
 
-Table 2 Header 1 Table 2 Header 2 Table 2 Footer 1 Table 2 Footer 2 Table 2 Row 1 Col 1 Table 2 Row 1 Col 2 Table 2 Row 2 Col 1 Table 2 Row 2 Col 2`,
+Table 2 Header 1 Table 2 Header 2
+Table 2 Footer 1 Table 2 Footer 2
+Table 2 Row 1 Col 1 Table 2 Row 1 Col 2
+Table 2 Row 2 Col 1 Table 2 Row 2 Col 2`,
 		},
 		{
 			"_<table><tr><td>cell</td></tr></table>_",
@@ -396,7 +411,9 @@ Table 2 Header 1 Table 2 Header 2 Table 2 Footer 1 Table 2 Footer 2 Table 2 Row 
 | Hermes | Programmatically create        | $1.99  |
 |        | beautiful e-mails using        |        |
 |        | Golang.                        |        |`,
-			"Item Description Price Golang Open source programming language that makes it easy to build simple, reliable, and efficient software $10.99 Hermes Programmatically create beautiful e-mails using Golang. $1.99",
+			`Item  Description  Price
+Golang  Open source programming language that makes it easy to build simple, reliable, and efficient software  $10.99
+Hermes  Programmatically create beautiful e-mails using Golang.  $1.99`,
 		},
 	}
 
@@ -576,7 +593,7 @@ func TestBaseURLOption(t *testing.T) {
 		},
 		{
 			"http://example.com",
-			`<h2><a href="/foo/bar/"><div><span>Title</span><span>Sub</span></div></a></h2>`,
+			`<h2><a href="/foo/bar/"><div><span>Title</span> <span>Sub</span></div></a></h2>`,
 			`** Title Sub [[http://example.com/foo/bar/][Link]]`,
 		},
 	}
@@ -670,6 +687,10 @@ func TestLinks(t *testing.T) {
 		{
 			`<a href="http://example.com"><br><h3>Heading</h3><div></div></a>`,
 			`*** Heading [[http://example.com][Link]]`,
+		},
+		{
+			`<p>(see <a href="http://example.com">Plain Lists</a>)</p>`,
+			`(see [[http://example.com][Plain Lists]])`,
 		},
 	}
 
@@ -879,7 +900,7 @@ func TestDiv(t *testing.T) {
 		},
 		{
 			"Test 1<div>&nbsp;Test 2&nbsp;</div>",
-			"Test 1\nTest 2",
+			"Test 1\n Test 2",
 		},
 	}
 
@@ -953,9 +974,9 @@ Lorem ipsum Commodo id consectetur pariatur ea occaecat minim aliqua ad sit cons
 #+end_quote`,
 		},
 		{
-			"<blockquote>Lorem<b>ipsum</b><b>Commodo</b><b>id</b><b>consectetur</b><b>pariatur</b><b>ea</b><b>occaecat</b><b>minim</b><b>aliqua</b><b>ad</b><b>sit</b><b>consequat</b><b>quis</b><b>ex</b><b>commodo</b><b>Duis</b><b>incididunt</b><b>eu</b><b>mollit</b><b>consectetur</b><b>fugiat</b><b>voluptate</b><b>dolore</b><b>in</b><b>pariatur</b><b>in</b><b>commodo</b><b>occaecat</b><b>Ut</b><b>occaecat</b><b>velit</b><b>esse</b><b>labore</b><b>aute</b><b>quis</b><b>commodo</b><b>non</b><b>sit</b><b>dolore</b><b>officia</b><b>Excepteur</b><b>cillum</b><b>amet</b><b>cupidatat</b><b>culpa</b><b>velit</b><b>labore</b><b>ullamco</b><b>dolore</b><b>mollit</b><b>elit</b><b>in</b><b>aliqua</b><b>dolor</b><b>irure</b><b>do</b></blockquote>",
+			"<blockquote>Lorem <b>ipsum</b> <b>Commodo</b>.</blockquote>",
 			`#+begin_quote
-Lorem *ipsum* *Commodo* *id* *consectetur* *pariatur* *ea* *occaecat* *minim* *aliqua* *ad* *sit* *consequat* *quis* *ex* *commodo* *Duis* *incididunt* *eu* *mollit* *consectetur* *fugiat* *voluptate* *dolore* *in* *pariatur* *in* *commodo* *occaecat* *Ut* *occaecat* *velit* *esse* *labore* *aute* *quis* *commodo* *non* *sit* *dolore* *officia* *Excepteur* *cillum* *amet* *cupidatat* *culpa* *velit* *labore* *ullamco* *dolore* *mollit* *elit* *in* *aliqua* *dolor* *irure* *do*
+Lorem *ipsum* *Commodo*.
 #+end_quote`,
 		},
 	}
@@ -1207,11 +1228,15 @@ func TestCleanSpacing(t *testing.T) {
 	}{
 		{
 			"\n foo bar  baz",
-			"foo bar baz",
+			" foo bar baz",
 		},
 		{
-			"\n  \n\nfoo\nbar\nbaz\n\n",
-			"foo bar baz",
+			"\n  \n\nfoo\nbar\nbaz",
+			" foo bar baz",
+		},
+		{
+			"foo\nbar\nbaz\n\n",
+			"foo bar baz ",
 		},
 	}
 
