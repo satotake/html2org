@@ -379,7 +379,7 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 		if strings.Contains(result, "\n") {
 			ctx.emit(fmt.Sprintf("\n#+begin_src\n%s\n#+end_src\n", result))
 		} else {
-			ctx.emit(fmt.Sprintf("=%s=", result))
+			ctx.emit(fmt.Sprintf("~%s~", result))
 		}
 
 		return nil

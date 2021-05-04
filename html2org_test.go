@@ -181,23 +181,23 @@ func TestCodeRelatedTags(t *testing.T) {
 		// single line
 		{
 			`<p>The first <tt class="key">KEY</tt> part.`,
-			`The first =KEY= part.`,
+			`The first ~KEY~ part.`,
 		},
 		{
 			`<p>This is <kbd>kbd</kbd>.`,
-			`This is =kbd=.`,
+			`This is ~kbd~.`,
 		},
 		{
 			`<p>This is <var>var</var>.`,
-			`This is =var=.`,
+			`This is ~var~.`,
 		},
 		{
 			`<p>the argument to <code>code</code> is</p>`,
-			`the argument to =code= is`,
+			`the argument to ~code~ is`,
 		},
 		{
 			`<p>This is <samp>samp</samp>.</p>`,
-			`This is =samp=.`,
+			`This is ~samp~.`,
 		},
 		// multiple line
 		{
