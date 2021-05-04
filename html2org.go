@@ -124,8 +124,8 @@ func FromString(input string, options ...Options) (string, error) {
 }
 
 var (
-	spacingRe = regexp.MustCompile(`[ \r\n\t]+`)
-	newlineRe = regexp.MustCompile(`\n\n+`)
+	spacingRe       = regexp.MustCompile(`[ \r\n\t]+`)
+	newlineRe       = regexp.MustCompile(`\n\n+`)
 	trailingSpaceRe = regexp.MustCompile(` +\n`)
 )
 
@@ -161,10 +161,10 @@ func (tableCtx *tableTraverseContext) init() {
 	tableCtx.tmpRow = 0
 }
 
-func (ctx *textifyTraverseContext) traverseWithSubContext (node *html.Node) (textifyTraverseContext, error) {
+func (ctx *textifyTraverseContext) traverseWithSubContext(node *html.Node) (textifyTraverseContext, error) {
 	subCtx := textifyTraverseContext{
 		options: ctx.options,
-		isPre: ctx.isPre,
+		isPre:   ctx.isPre,
 	}
 	err := subCtx.traverseChildren(node)
 	return subCtx, err
@@ -329,8 +329,6 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 		}
 
 		return nil
-
-
 
 	case atom.Input:
 		t := getAttrVal(node, "type")
@@ -509,8 +507,8 @@ func (ctx *textifyTraverseContext) handleTableElement(node *html.Node) error {
 			}
 
 			// change center sep with ColumnSeparator on the left/right borders
-			s = strings.ReplaceAll(s, "\n+", "\n" + options.ColumnSeparator)
-			s = strings.ReplaceAll(s, "+\n", options.ColumnSeparator + "\n")
+			s = strings.ReplaceAll(s, "\n+", "\n"+options.ColumnSeparator)
+			s = strings.ReplaceAll(s, "+\n", options.ColumnSeparator+"\n")
 		}
 
 		if err := ctx.emit(s); err != nil {
@@ -721,40 +719,40 @@ func getAttrVal(node *html.Node, attrName string) string {
 }
 
 var blockLevelAtoms = map[atom.Atom]struct{}{
-	atom.Address: {},
-	atom.Article: {},
-	atom.Aside: {},
+	atom.Address:    {},
+	atom.Article:    {},
+	atom.Aside:      {},
 	atom.Blockquote: {},
-	atom.Canvas: {},
-	atom.Dd: {},
-	atom.Div: {},
-	atom.Dl: {},
-	atom.Dt: {},
-	atom.Fieldset: {},
+	atom.Canvas:     {},
+	atom.Dd:         {},
+	atom.Div:        {},
+	atom.Dl:         {},
+	atom.Dt:         {},
+	atom.Fieldset:   {},
 	atom.Figcaption: {},
-	atom.Figure: {},
-	atom.Footer: {},
-	atom.Form: {},
-	atom.H1: {},
-	atom.H2: {},
-	atom.H3: {},
-	atom.H4: {},
-	atom.H5: {},
-	atom.H6: {},
-	atom.Header: {},
-	atom.Hr: {},
-	atom.Li: {},
-	atom.Main: {},
-	atom.Nav: {},
-	atom.Noscript: {},
-	atom.Ol: {},
-	atom.P: {},
-	atom.Pre: {},
-	atom.Section: {},
-	atom.Table: {},
-	atom.Tfoot: {},
-	atom.Ul: {},
-	atom.Video: {},
+	atom.Figure:     {},
+	atom.Footer:     {},
+	atom.Form:       {},
+	atom.H1:         {},
+	atom.H2:         {},
+	atom.H3:         {},
+	atom.H4:         {},
+	atom.H5:         {},
+	atom.H6:         {},
+	atom.Header:     {},
+	atom.Hr:         {},
+	atom.Li:         {},
+	atom.Main:       {},
+	atom.Nav:        {},
+	atom.Noscript:   {},
+	atom.Ol:         {},
+	atom.P:          {},
+	atom.Pre:        {},
+	atom.Section:    {},
+	atom.Table:      {},
+	atom.Tfoot:      {},
+	atom.Ul:         {},
+	atom.Video:      {},
 }
 
 func containsBlockLevelAtom(node *html.Node) bool {
@@ -784,7 +782,7 @@ func cleanSpacing(s string) string {
 	return buf.String()
 }
 
-func normalizeNonBreakingSpace (s string) string {
+func normalizeNonBreakingSpace(s string) string {
 	buf := bytes.Buffer{}
 	for _, c := range s {
 		// non-breaking space
