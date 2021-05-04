@@ -700,7 +700,8 @@ func (ctx *textifyTraverseContext) renderEachChild(node *html.Node) (string, err
 		if _, err = buf.WriteString(s); err != nil {
 			return "", err
 		}
-		if c.NextSibling != nil {
+
+		if _, isBlockLevel := blockLevelAtoms[c.DataAtom]; c.NextSibling != nil && isBlockLevel {
 			if err = buf.WriteByte('\n'); err != nil {
 				return "", err
 			}
@@ -719,50 +720,47 @@ func getAttrVal(node *html.Node, attrName string) string {
 	return ""
 }
 
-var blockLevelAtoms = []atom.Atom{
-	atom.Address,
-	atom.Article,
-	atom.Aside,
-	atom.Blockquote,
-	atom.Canvas,
-	atom.Dd,
-	atom.Div,
-	atom.Dl,
-	atom.Dt,
-	atom.Fieldset,
-	atom.Figcaption,
-	atom.Figure,
-	atom.Footer,
-	atom.Form,
-	atom.H1,
-	atom.H2,
-	atom.H3,
-	atom.H4,
-	atom.H5,
-	atom.H6,
-	atom.Header,
-	atom.Hr,
-	atom.Li,
-	atom.Main,
-	atom.Nav,
-	atom.Noscript,
-	atom.Ol,
-	atom.P,
-	atom.Pre,
-	atom.Section,
-	atom.Table,
-	atom.Tfoot,
-	atom.Ul,
-	atom.Video,
+var blockLevelAtoms = map[atom.Atom]struct{}{
+	atom.Address: {},
+	atom.Article: {},
+	atom.Aside: {},
+	atom.Blockquote: {},
+	atom.Canvas: {},
+	atom.Dd: {},
+	atom.Div: {},
+	atom.Dl: {},
+	atom.Dt: {},
+	atom.Fieldset: {},
+	atom.Figcaption: {},
+	atom.Figure: {},
+	atom.Footer: {},
+	atom.Form: {},
+	atom.H1: {},
+	atom.H2: {},
+	atom.H3: {},
+	atom.H4: {},
+	atom.H5: {},
+	atom.H6: {},
+	atom.Header: {},
+	atom.Hr: {},
+	atom.Li: {},
+	atom.Main: {},
+	atom.Nav: {},
+	atom.Noscript: {},
+	atom.Ol: {},
+	atom.P: {},
+	atom.Pre: {},
+	atom.Section: {},
+	atom.Table: {},
+	atom.Tfoot: {},
+	atom.Ul: {},
+	atom.Video: {},
 }
 
 func containsBlockLevelAtom(node *html.Node) bool {
 	for c := node.FirstChild; c != nil; c = c.NextSibling {
-		for _, a := range blockLevelAtoms {
-			if c.DataAtom == a {
-				return true
-			}
-		}
+		_, ok := blockLevelAtoms[c.DataAtom]
+		return ok
 	}
 	return false
 }

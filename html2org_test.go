@@ -410,6 +410,16 @@ Table 2 Row 2 Col 1 Table 2 Row 2 Col 2`,
 Golang  Open source programming language that makes it easy to build simple, reliable, and efficient software  $10.99
 Hermes  Programmatically create beautiful e-mails using Golang.  $1.99`,
 		},
+		{
+			`<table><tr>
+ <td><span></span></td>
+ <td><span></span>1</td>
+ <td><a href="http://example.com/2"><span></span>2</a></td>
+ <td><a href="http://example.com/3"><span></span>3</a></td>
+</tr></table>`,
+			`|  | 1 | [[http://example.com/2][2]] | [[http://example.com/3][3]] |`,
+			`1  [[http://example.com/2][2]]  [[http://example.com/3][3]]`,
+		},
 	}
 
 	for _, testCase := range testCases {
