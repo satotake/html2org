@@ -411,6 +411,11 @@ func TestBaseURLOption(t *testing.T) {
 		output  string
 	}{
 		{
+			"https://orgmode.org/manual/Structure-Templates.html",
+			`<a name="index-template-insertion"></a>`,
+			``,
+		},
+		{
 			"http://example.com/foo/",
 			`<a href="./bar/">bar</a>`,
 			`[[http://example.com/foo/bar/][bar]]`,

@@ -587,6 +587,10 @@ func (ctx *textifyTraverseContext) breakLongLines(data string) []string {
 }
 
 func (ctx *textifyTraverseContext) normalizeHrefLink(link string) (string, error) {
+	if link == "" {
+		return link, nil
+	}
+
 	link = strings.TrimSpace(link)
 	link = strings.ReplaceAll(link, "\n", "")
 	if ctx.options.BaseURL != "" {
