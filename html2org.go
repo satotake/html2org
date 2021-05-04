@@ -333,6 +333,24 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 		ctx.isPre = false
 		return err
 
+	case atom.Samp, atom.Kbd, atom.Tt, atom.Var, atom.Code:
+		subCtx := textifyTraverseContext{
+			options: ctx.options,
+		}
+		err := subCtx.traverseChildren(node)
+		if err != nil {
+			return err
+		}
+
+		result := strings.TrimSpace(subCtx.buf.String())
+		if strings.Contains(result, "\n") {
+			ctx.emit(fmt.Sprintf("\n#+begin_src\n%s\n#+end_src\n", result))
+		} else {
+			ctx.emit(fmt.Sprintf("=%s=", result))
+		}
+
+		return nil
+
 	case atom.Noscript:
 		if ctx.options.ShowNoscripts && node.FirstChild != nil {
 			s, err := FromString(node.FirstChild.Data)

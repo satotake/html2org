@@ -173,6 +173,53 @@ test 1   test 2
 	}
 }
 
+func TestCodeRelatedTags(t *testing.T) {
+	testCases := []struct {
+		input  string
+		output string
+	}{
+		// single line
+		{
+			`<p>The first <tt class="key">KEY</tt> part.`,
+			`The first =KEY= part.`,
+		},
+		{
+			`<p>This is <kbd>kbd</kbd>.`,
+			`This is =kbd=.`,
+		},
+		{
+			`<p>This is <var>var</var>.`,
+			`This is =var=.`,
+		},
+		{
+			`<p>the argument to <code>code</code> is</p>`,
+			`the argument to =code= is`,
+		},
+		{
+			`<p>This is <samp>samp</samp>.</p>`,
+			`This is =samp=.`,
+		},
+		// multiple line
+		{
+			`<p>Multi-line <tt class="key">teletype<br>TELETYPE</tt> part.`,
+			`Multi-line
+#+begin_src
+teletype
+TELETYPE
+#+end_src
+part.`,
+		},
+	}
+
+	for _, testCase := range testCases {
+		if msg, err := wantString(testCase.input, testCase.output); err != nil {
+			t.Error(err)
+		} else if len(msg) > 0 {
+			t.Log(msg)
+		}
+	}
+}
+
 func TestTables(t *testing.T) {
 	testCases := []struct {
 		input           string
