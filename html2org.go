@@ -323,12 +323,12 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 
 	case atom.Pre:
 		ctx.isPre = true
-		ctx.emit("\n#+begin_verse\n")
+		ctx.emit("\n#+begin_src\n")
 		err := ctx.traverseChildren(node)
 		if !ctx.endsWithNewLine {
 			ctx.emit("\n")
 		}
-		ctx.emit("#+end_verse\n")
+		ctx.emit("#+end_src\n")
 
 		ctx.isPre = false
 		return err

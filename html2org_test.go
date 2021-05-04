@@ -141,26 +141,26 @@ func TestParagraphsAndBreaks(t *testing.T) {
 		},
 		{
 			"<pre>test1\ntest 2\n\ntest  3\n</pre>",
-			`#+begin_verse
+			`#+begin_src
 test1
 test 2
 
 test  3
-#+end_verse`,
+#+end_src`,
 		},
 		{
 			"<pre>test 1   test 2</pre>",
-			`#+begin_verse
+			`#+begin_src
 test 1   test 2
-#+end_verse`,
+#+end_src`,
 		},
 		{
 			`<pre class="chroma">
     <span class="nx">b1</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">([]</span><span class="kt">byte</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
 </pre>`,
-			`#+begin_verse
+			`#+begin_src
    b1 := make([]byte, 5)
-#+end_verse`,
+#+end_src`,
 		},
 	}
 
