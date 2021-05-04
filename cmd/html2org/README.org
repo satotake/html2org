@@ -5,6 +5,13 @@
 go get -u github.com/satotake/html2org/cmd/html2org
 #+end_src
 
+*** from source
+#+begin_src sh
+git clone git@github.com:satotake/html2org.git
+cd html2org/cmd/html2org/
+go install  # or go build
+#+end_src
+
 ** Usage
 #+begin_src
 html2org <flags>
