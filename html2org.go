@@ -15,6 +15,13 @@ import (
 	"golang.org/x/net/html/atom"
 )
 
+var allowedInputTypes = map[string]struct{}{
+	"text":     {},
+	"number":   {},
+	"password": {},
+	"unknown":  {},
+}
+
 // Options provide toggles and overrides to control specific rendering behaviors.
 type Options struct {
 	PrettyTables        bool                 // Turns on pretty ASCII rendering for table elements.
@@ -304,6 +311,32 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 			return ctx.paragraphHandler(node)
 		}
 		return ctx.traverseChildren(node)
+
+	case atom.Input:
+		t := getAttrVal(node, "type")
+		if t == "" {
+			t = "unknown"
+		}
+		value := getAttrVal(node, "value")
+		placeholder := getAttrVal(node, "placeholder")
+		content := ""
+		if value != "" {
+			content = value
+		} else {
+			content = placeholder
+		}
+
+		if _, ok := allowedInputTypes[t]; !ok {
+			return nil
+		}
+
+		return ctx.emit(fmt.Sprintf(`
+
+#+begin_input :type %s
+%s
+#+end_input
+
+`, t, content))
 
 	case atom.Img:
 		alt := getAttrVal(node, "alt")

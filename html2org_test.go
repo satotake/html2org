@@ -451,6 +451,81 @@ func TestNoscripts(t *testing.T) {
 	}
 }
 
+func TestInputs(t *testing.T) {
+	testCases := []struct {
+		input  string
+		output string
+	}{
+		{
+			`<input>`,
+			`#+begin_input :type unknown
+
+#+end_input`,
+		},
+		{
+			`<input />`,
+			`#+begin_input :type unknown
+
+#+end_input`,
+		},
+		{
+			`<input type="text" >`,
+			`#+begin_input :type text
+
+#+end_input`,
+		},
+		{
+			`<input type="number" >`,
+			`#+begin_input :type number
+
+#+end_input`,
+		},
+		{
+			`<input type="password" >`,
+			`#+begin_input :type password
+
+#+end_input`,
+		},
+		// TODO other types
+		{
+			`<input type="radio" >`,
+			``,
+		},
+		{
+			`<input type="hidden" >`,
+			``,
+		},
+		{
+			`<input placeholder="Enter input" />`,
+			`#+begin_input :type unknown
+Enter input
+#+end_input`,
+		},
+		// readonly is ignored
+		{
+			`<input type="text" value="git@github.com:satotake/html2org.git" readonly="">`,
+			`#+begin_input :type text
+git@github.com:satotake/html2org.git
+#+end_input`,
+		},
+		// use not placeholder but value for display
+		{
+			`<input type="text" value="VALUE" placeholder="P">`,
+			`#+begin_input :type text
+VALUE
+#+end_input`,
+		},
+	}
+
+	for _, testCase := range testCases {
+		if msg, err := wantString(testCase.input, testCase.output, Options{ShowNoscripts: true}); err != nil {
+			t.Error(err)
+		} else if len(msg) > 0 {
+			t.Log(msg)
+		}
+	}
+}
+
 func TestBaseURLOption(t *testing.T) {
 	testCases := []struct {
 		baseURL string
