@@ -325,11 +325,10 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 		ctx.isPre = true
 		ctx.emit("\n#+begin_verse\n")
 		err := ctx.traverseChildren(node)
-		if ctx.endsWithNewLine {
-			ctx.emit("#+end_verse\n")
-		} else {
-			ctx.emit("\n#+end_verse\n")
+		if !ctx.endsWithNewLine {
+			ctx.emit("\n")
 		}
+		ctx.emit("#+end_verse\n")
 
 		ctx.isPre = false
 		return err
