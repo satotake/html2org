@@ -367,6 +367,9 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 		return err
 
 	case atom.Samp, atom.Kbd, atom.Tt, atom.Var, atom.Code:
+		if ctx.isPre {
+			return ctx.traverseChildren(node)
+		}
 		subCtx := textifyTraverseContext{
 			options: ctx.options,
 		}

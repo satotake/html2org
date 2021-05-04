@@ -209,6 +209,16 @@ TELETYPE
 #+end_src
 part.`,
 		},
+		{
+			`<pre><code>a := 1
+b := 2
+</code></pre>
+`,
+			`#+begin_src
+a := 1
+b := 2
+#+end_src`,
+		},
 	}
 
 	for _, testCase := range testCases {
