@@ -706,7 +706,20 @@ func (ctx *textifyTraverseContext) normalizeHrefLink(link string) (string, error
 	if ctx.options.BaseURL != "" {
 		u, err := url.Parse(link)
 		if err != nil {
-			return "", err
+			s := err.Error()
+			// try to ignore invalid part and use vaid part
+			// parse "ssssss#%_tbar": invalid URL escape "%_t"
+			message := "invalid URL escape "
+			if !strings.Contains(s, message) {
+				return "", err
+			}
+			splitted := strings.Split(s, message)
+			invalid := strings.Trim(splitted[len(splitted)-1], `"`)
+			validPart := strings.Split(link, invalid)[0]
+			u, err = url.Parse(validPart)
+			if err != nil {
+				return "", err
+			}
 		}
 		base, err := url.Parse(ctx.options.BaseURL)
 		if err != nil {

@@ -673,6 +673,11 @@ func TestBaseURLOption(t *testing.T) {
 			`<h2><a href="/foo/bar/"><div><span>Title</span> <span>Sub</span></div></a></h2>`,
 			`** Title Sub [[http://example.com/foo/bar/][Link]]`,
 		},
+		{
+			"https://mitpress.mit.edu",
+			`<a href="book-Z-H-4.html#%_toc_start">content</a>`,
+			"[[https://mitpress.mit.edu/book-Z-H-4.html][content]]",
+		},
 	}
 
 	for _, testCase := range testCases {
