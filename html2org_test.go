@@ -34,12 +34,12 @@ func TestParseUTF8(t *testing.T) {
 	}{
 		{
 			"utf8.html",
-			"学习之道:美国公认学习第一书title",
+			"学习之道:美国公认学习第一书script",
 			"次世界冠军赛上，我几近疯狂",
 		},
 		{
 			"utf8_with_bom.xhtml",
-			"1892年波兰文版序言title",
+			"1892年波兰文版序言script",
 			"种新的波兰文本已成为必要",
 		},
 	}
@@ -1109,10 +1109,6 @@ func TestIgnoreStylesScriptsHead(t *testing.T) {
 			"<script type=\"bla-bla-bla\" id=\"template.html\">Test</script>",
 			"",
 		},
-		{
-			`<html><head><title>Title</title></head><body></body></html>`,
-			"",
-		},
 	}
 
 	for _, testCase := range testCases {
@@ -1374,6 +1370,7 @@ func Example() {
 	fmt.Println(text)
 
 	// Output:
+	// #+TITLE: My Mega Service
 	//
 	// #+NAME: Mega Service
 	// [[/logo-image.jpg]]
