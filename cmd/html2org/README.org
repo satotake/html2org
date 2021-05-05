@@ -26,6 +26,8 @@ html2org <flags>
     enable PrettyTables option
   -v
     show version
+  -c
+    sniff content and throw error if it is guessed as non-html
   -noscript
     show content inside noscript tag
   -h

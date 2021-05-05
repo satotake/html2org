@@ -1,13 +1,15 @@
 package main
 
 import (
-	"bufio"
+	"bytes"
 	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
+	"strings"
 
 	"github.com/satotake/html2org"
 )
@@ -22,6 +24,7 @@ type Option struct {
 	BaseURL      string
 	PrettyTables bool
 	Noscript     bool
+	Check        bool
 }
 
 func parseFlag() *Option {
@@ -31,9 +34,17 @@ func parseFlag() *Option {
 	baseURL := flag.String("u", "", "set BaseURL")
 	table := flag.Bool("t", false, "enable PrettyTables option")
 	noscript := flag.Bool("noscript", false, "show content inside noscript tag")
+	check := flag.Bool("c", false, "sniff content and throw error if it is guessed as non-html")
 	flag.Parse()
+
 	return &Option{
-		*input, *output, *version, *baseURL, *table, *noscript,
+		*input,
+		*output,
+		*version,
+		*baseURL,
+		*table,
+		*noscript,
+		*check,
 	}
 }
 
@@ -51,13 +62,25 @@ func main() {
 		os.Exit(0)
 	}
 
+	var err error
 	var r io.Reader
 	if opt.Input == "" {
-		r = bufio.NewReader(os.Stdin)
+		r = (os.Stdin)
 	} else {
-		r, err := os.Open(opt.Input)
+		f, err := os.Open(opt.Input)
 		check(err)
-		defer r.Close()
+		defer f.Close()
+		r = (f)
+	}
+
+	if opt.Check {
+		b := make([]byte, 512)
+		_, err = r.Read(b)
+		check(err)
+		err = checkNonHtmlContent(b)
+		check(err)
+		reused := bytes.NewReader(b)
+		r = io.MultiReader(reused, r)
 	}
 
 	res, err := html2org.FromReader(r, html2org.Options{
@@ -74,4 +97,12 @@ func main() {
 		err := ioutil.WriteFile(opt.Output, []byte(res), 0644)
 		check(err)
 	}
+}
+
+func checkNonHtmlContent(b []byte) error {
+	ct := http.DetectContentType(b)
+	if !strings.Contains(ct, "text/html") {
+		return fmt.Errorf("non-html file: %s", ct)
+	}
+	return nil
 }
