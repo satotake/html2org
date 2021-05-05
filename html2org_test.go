@@ -523,6 +523,50 @@ body`,
 	}
 }
 
+func TestTextAreas(t *testing.T) {
+	testCases := []struct {
+		input  string
+		output string
+	}{
+		{
+			`<textarea></textarea>`,
+			`#+begin_textarea
+
+#+end_textarea`,
+		},
+		{
+			`<textarea placeholder="Enter..."></textarea>`,
+			`#+begin_textarea
+Enter...
+#+end_textarea`,
+		},
+		{
+			`<textarea placeholder="Enter...">Entered</textarea>`,
+			`#+begin_textarea
+Entered
+#+end_textarea`,
+		},
+		{
+			`<textarea>func foo() {
+    return 1
+}</textarea>`,
+			`#+begin_textarea
+func foo() {
+    return 1
+}
+#+end_textarea`,
+		},
+	}
+
+	for _, testCase := range testCases {
+		if msg, err := wantString(testCase.input, testCase.output, Options{ShowNoscripts: true}); err != nil {
+			t.Error(err)
+		} else if len(msg) > 0 {
+			t.Log(msg)
+		}
+	}
+}
+
 func TestInputs(t *testing.T) {
 	testCases := []struct {
 		input  string

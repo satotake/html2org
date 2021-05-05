@@ -141,7 +141,7 @@ type textifyTraverseContext struct {
 	justClosedDiv   bool
 	blockquoteLevel int
 	lineLength      int
-	isPre           bool
+	isPreFormatted  bool
 }
 
 // tableTraverseContext holds table ASCII-form related context.
@@ -163,8 +163,8 @@ func (tableCtx *tableTraverseContext) init() {
 
 func (ctx *textifyTraverseContext) traverseWithSubContext(node *html.Node) (textifyTraverseContext, error) {
 	subCtx := textifyTraverseContext{
-		options: ctx.options,
-		isPre:   ctx.isPre,
+		options:        ctx.options,
+		isPreFormatted: ctx.isPreFormatted,
 	}
 	err := subCtx.traverseChildren(node)
 	return subCtx, err
@@ -358,6 +358,27 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 
 `, t, content))
 
+	case atom.Textarea:
+		placeholder := getAttrVal(node, "placeholder")
+		ctx.isPreFormatted = true
+		subCtx, err := ctx.traverseWithSubContext(node)
+		ctx.isPreFormatted = false
+		if err != nil {
+			return err
+		}
+		content := subCtx.buf.String()
+		if content == "" {
+			content = placeholder
+		}
+
+		return ctx.emit(fmt.Sprintf(`
+
+#+begin_textarea
+%s
+#+end_textarea
+
+`, content))
+
 	case atom.Img:
 		alt := getAttrVal(node, "alt")
 		src, err := ctx.normalizeHrefLink(getAttrVal(node, "src"))
@@ -375,7 +396,7 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 		return ctx.emit(fmt.Sprintf("[[%s]]\n", src))
 
 	case atom.Pre:
-		ctx.isPre = true
+		ctx.isPreFormatted = true
 		ctx.emit("\n#+begin_src\n")
 		err := ctx.traverseChildren(node)
 		if !ctx.endsWithNewLine {
@@ -383,11 +404,11 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 		}
 		ctx.emit("#+end_src\n")
 
-		ctx.isPre = false
+		ctx.isPreFormatted = false
 		return err
 
 	case atom.Samp, atom.Kbd, atom.Tt, atom.Var, atom.Code:
-		if ctx.isPre {
+		if ctx.isPreFormatted {
 			return ctx.traverseChildren(node)
 		}
 
@@ -572,7 +593,7 @@ func (ctx *textifyTraverseContext) traverse(node *html.Node) error {
 
 	case html.TextNode:
 		var data string
-		if ctx.isPre {
+		if ctx.isPreFormatted {
 			data = node.Data
 		} else {
 			data = cleanSpacing(node.Data)
@@ -605,7 +626,7 @@ func (ctx *textifyTraverseContext) emit(data string) error {
 	for _, line := range lines {
 		runes := []rune(line)
 
-		if !ctx.isPre && ctx.endsWithNewLine {
+		if !ctx.isPreFormatted && ctx.endsWithNewLine {
 			line = strings.TrimPrefix(line, " ")
 			if ctx.prefix != "" {
 				ctx.endsWithNewLine = false
