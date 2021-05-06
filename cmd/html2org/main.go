@@ -14,7 +14,6 @@ import (
 	"github.com/satotake/html2org"
 )
 
-// TODO
 const version = "v0.0.4"
 
 type Option struct {
