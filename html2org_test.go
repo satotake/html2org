@@ -523,6 +523,75 @@ body`,
 	}
 }
 
+func TestForms(t *testing.T) {
+	testCases := []struct {
+		baseURL string
+		input   string
+		output  string
+	}{
+		{
+			"https://example.com/foo/",
+			`<form id="fid" method="post" action="./bar/submit/post"><input type="text" name="fname"></form>`,
+			`#+begin_input _ :type text :id org-form-id--1 :name fname
+
+#+end_input
+[[org-form:org-form-id--1:post:https://example.com/foo/bar/submit/post][Submit]]`,
+		},
+		{
+			"https://example.com",
+			`<form id="fid" method="get" action="/submit/get"><textarea name="fname"></textarea></form>`,
+			`#+begin_textarea _ :id org-form-id--1 :name fname
+
+#+end_textarea
+[[org-form:org-form-id--1:get:https://example.com/submit/get][Submit]]`,
+		},
+		{
+			"https://example.com/foo",
+			`<form method="get" action="/submit">
+	<input type="text" name="fname1">
+	<input type="text" name="fname2">
+</form>`,
+			`#+begin_input _ :type text :id org-form-id--1 :name fname1
+
+#+end_input
+
+#+begin_input _ :type text :id org-form-id--1 :name fname2
+
+#+end_input
+[[org-form:org-form-id--1:get:https://example.com/submit][Submit]]`,
+		},
+		{
+			"https://example.com/foo",
+			`<form method="get" action="/submit1"><input type="text" name="fname"></form>
+<form method="get" action="/submit2"><input type="text" name="fname"></form>
+<form method="get" action="/submit3"><input type="text" name="fname"></form>`,
+			`#+begin_input _ :type text :id org-form-id--1 :name fname
+
+#+end_input
+[[org-form:org-form-id--1:get:https://example.com/submit1][Submit]]
+
+#+begin_input _ :type text :id org-form-id--2 :name fname
+
+#+end_input
+[[org-form:org-form-id--2:get:https://example.com/submit2][Submit]]
+
+#+begin_input _ :type text :id org-form-id--3 :name fname
+
+#+end_input
+[[org-form:org-form-id--3:get:https://example.com/submit3][Submit]]`,
+		},
+	}
+
+	for _, testCase := range testCases {
+		if msg, err := wantString(testCase.input, testCase.output,
+			Options{BaseURL: testCase.baseURL}); err != nil {
+			t.Error(err)
+		} else if len(msg) > 0 {
+			t.Log(msg)
+		}
+	}
+}
+
 func TestTextAreas(t *testing.T) {
 	testCases := []struct {
 		input  string
@@ -530,19 +599,19 @@ func TestTextAreas(t *testing.T) {
 	}{
 		{
 			`<textarea></textarea>`,
-			`#+begin_textarea
+			`#+begin_textarea _
 
 #+end_textarea`,
 		},
 		{
 			`<textarea placeholder="Enter..."></textarea>`,
-			`#+begin_textarea
+			`#+begin_textarea _
 Enter...
 #+end_textarea`,
 		},
 		{
 			`<textarea placeholder="Enter...">Entered</textarea>`,
-			`#+begin_textarea
+			`#+begin_textarea _
 Entered
 #+end_textarea`,
 		},
@@ -550,7 +619,7 @@ Entered
 			`<textarea>func foo() {
     return 1
 }</textarea>`,
-			`#+begin_textarea
+			`#+begin_textarea _
 func foo() {
     return 1
 }
@@ -574,31 +643,31 @@ func TestInputs(t *testing.T) {
 	}{
 		{
 			`<input>`,
-			`#+begin_input :type unknown
+			`#+begin_input _ :type unknown
 
 #+end_input`,
 		},
 		{
 			`<input />`,
-			`#+begin_input :type unknown
+			`#+begin_input _ :type unknown
 
 #+end_input`,
 		},
 		{
 			`<input type="text" >`,
-			`#+begin_input :type text
+			`#+begin_input _ :type text
 
 #+end_input`,
 		},
 		{
 			`<input type="number" >`,
-			`#+begin_input :type number
+			`#+begin_input _ :type number
 
 #+end_input`,
 		},
 		{
 			`<input type="password" >`,
-			`#+begin_input :type password
+			`#+begin_input _ :type password
 
 #+end_input`,
 		},
@@ -613,21 +682,21 @@ func TestInputs(t *testing.T) {
 		},
 		{
 			`<input placeholder="Enter input" />`,
-			`#+begin_input :type unknown
+			`#+begin_input _ :type unknown
 Enter input
 #+end_input`,
 		},
 		// readonly is ignored
 		{
 			`<input type="text" value="git@github.com:satotake/html2org.git" readonly="">`,
-			`#+begin_input :type text
+			`#+begin_input _ :type text
 git@github.com:satotake/html2org.git
 #+end_input`,
 		},
 		// use not placeholder but value for display
 		{
 			`<input type="text" value="VALUE" placeholder="P">`,
-			`#+begin_input :type text
+			`#+begin_input _ :type text
 VALUE
 #+end_input`,
 		},

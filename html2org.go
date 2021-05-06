@@ -15,6 +15,8 @@ import (
 	"golang.org/x/net/html/atom"
 )
 
+const orgFormIDFormat = "org-form-id--%d"
+
 var allowedInputTypes = map[string]struct{}{
 	"text":     {},
 	"number":   {},
@@ -142,6 +144,8 @@ type textifyTraverseContext struct {
 	blockquoteLevel int
 	lineLength      int
 	isPreFormatted  bool
+	isInForm        bool
+	formCounter     int
 }
 
 // tableTraverseContext holds table ASCII-form related context.
@@ -165,6 +169,8 @@ func (ctx *textifyTraverseContext) traverseWithSubContext(node *html.Node) (text
 	subCtx := textifyTraverseContext{
 		options:        ctx.options,
 		isPreFormatted: ctx.isPreFormatted,
+		isInForm:       ctx.isInForm,
+		formCounter:    ctx.formCounter,
 	}
 	err := subCtx.traverseChildren(node)
 	return subCtx, err
@@ -350,13 +356,26 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 			return nil
 		}
 
-		return ctx.emit(fmt.Sprintf(`
+		if !ctx.isInForm {
 
-#+begin_input :type %s
+			return ctx.emit(fmt.Sprintf(`
+
+#+begin_input _ :type %s
 %s
 #+end_input
 
 `, t, content))
+
+		} else {
+			name := getAttrVal(node, "name")
+			id := fmt.Sprintf(orgFormIDFormat, ctx.formCounter)
+			return ctx.emit(fmt.Sprintf(`
+
+#+begin_input _ :type %s :id %s :name %s
+%s
+#+end_input
+`, t, id, name, content))
+		}
 
 	case atom.Textarea:
 		placeholder := getAttrVal(node, "placeholder")
@@ -371,13 +390,41 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 			content = placeholder
 		}
 
-		return ctx.emit(fmt.Sprintf(`
+		if !ctx.isInForm {
+			return ctx.emit(fmt.Sprintf(`
 
-#+begin_textarea
+#+begin_textarea _
 %s
 #+end_textarea
 
 `, content))
+		} else {
+			id := fmt.Sprintf(orgFormIDFormat, ctx.formCounter)
+			name := getAttrVal(node, "name")
+
+			return ctx.emit(fmt.Sprintf(`
+
+#+begin_textarea _ :id %s :name %s
+%s
+#+end_textarea
+`, id, name, content))
+		}
+
+	case atom.Form:
+		method := getAttrVal(node, "method")
+		action, err := ctx.normalizeHrefLink(getAttrVal(node, "action"))
+		ctx.isInForm = true
+		c := ctx.formCounter + 1
+		ctx.formCounter = c
+		id := fmt.Sprintf(orgFormIDFormat, c)
+		link := fmt.Sprintf("[[org-form:%s:%s:%s][Submit]]\n\n", id, method, action)
+		if err != nil {
+			return err
+		}
+		err = ctx.traverseChildren(node)
+		ctx.emit(link)
+		ctx.isInForm = false
+		return err
 
 	case atom.Img:
 		alt := getAttrVal(node, "alt")
