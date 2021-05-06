@@ -14,7 +14,7 @@ import (
 	"github.com/satotake/html2org"
 )
 
-const version = "v0.0.4"
+const version = "v0.0.5"
 
 type Option struct {
 	Input        string
