@@ -11,6 +11,5 @@ git add $cmd_go
 git commit -m "release $tag"
 
 git tag $tag
-git push origin $tag
 
 echo tag created $tag
