@@ -78,6 +78,8 @@ func main() {
 
 Output:
 ```
+#+TITLE: My Mega Service
+
 #+NAME: Mega Service
 [[/logo-image.jpg]]
 [[http://jaytaylor.com/][Mega Service]]
@@ -91,10 +93,10 @@ Here is some more information:
 - Something else
 
 |  HEADER 1   |  HEADER 2   |
-+-------------+-------------+
+|-------------+-------------|
 | Row 1 Col 1 | Row 1 Col 2 |
 | Row 2 Col 1 | Row 2 Col 2 |
-+-------------+-------------+
+|-------------+-------------|
 |  FOOTER 1   |  FOOTER 2   |
 ```
 
