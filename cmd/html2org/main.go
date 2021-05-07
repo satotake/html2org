@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	_ "embed"
 	"flag"
 	"fmt"
 	"io"
@@ -14,7 +15,8 @@ import (
 	"github.com/satotake/html2org"
 )
 
-const version = "v0.0.6"
+//go:embed VERSION
+var version string
 
 type Option struct {
 	Input        string
@@ -57,7 +59,7 @@ func main() {
 	opt := parseFlag()
 
 	if opt.Version {
-		fmt.Printf("html2org: HTML to org converter CLI %s", version)
+		fmt.Printf("html2org: HTML to org converter CLI v%s", version)
 		os.Exit(0)
 	}
 
