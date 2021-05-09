@@ -5,8 +5,9 @@ git tag
 
 read -p "next version?: " tag
 
-echo "${tag:1}" > ./cmd/html2org/VERSION
-git add $cmd_go
+version=./cmd/html2org/VERSION
+echo "${tag:1}" > $version
+git add $version
 git commit -m "release $tag"
 
 git tag $tag
