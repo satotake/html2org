@@ -167,6 +167,14 @@ test 1   test 2
     b1 := make([]byte, 5)
 #+end_src`,
 		},
+		// pre in pre
+		{
+			`<pre><pre><code>CODE
+</code></pre></pre>`,
+			`#+begin_src
+CODE
+#+end_src`,
+		},
 	}
 
 	for _, testCase := range testCases {

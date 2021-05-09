@@ -443,6 +443,10 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 		return ctx.emit(fmt.Sprintf("[[%s]]\n", src))
 
 	case atom.Pre:
+		if ctx.isPreFormatted {
+			return ctx.traverseChildren(node)
+		}
+
 		ctx.isPreFormatted = true
 		ctx.emit("\n#+begin_src\n")
 		err := ctx.traverseChildren(node)
