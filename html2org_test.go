@@ -897,7 +897,7 @@ func TestOmitLinks(t *testing.T) {
 		},
 		{
 			`<a href="http://example.com/"><img src="http://example.ru/hello.jpg" alt="Example"></a>`,
-			`#+NAME: Example
+			`#+CAPTION: Example
 [[http://example.ru/hello.jpg]]
 Example`,
 		},
@@ -931,19 +931,19 @@ func TestImageAltTags(t *testing.T) {
 		},
 		{
 			`<img src="http://example.ru/hello.jpg" alt="Example"/>`,
-			`#+NAME: Example
+			`#+CAPTION: Example
 [[http://example.ru/hello.jpg]]`,
 		},
 		// Images do matter if they are in a link.
 		{
 			`<a href="http://example.com/"><img src="http://example.ru/hello.jpg" alt="Example"/></a>`,
-			`#+NAME: Example
+			`#+CAPTION: Example
 [[http://example.ru/hello.jpg]]
 [[http://example.com/][Example]]`,
 		},
 		{
 			`<a href='http://example.com/'><img src='http://example.ru/hello.jpg' alt='Example'></a>`,
-			`#+NAME: Example
+			`#+CAPTION: Example
 [[http://example.ru/hello.jpg]]
 [[http://example.com/][Example]]`,
 		},
@@ -1454,7 +1454,7 @@ func Example() {
 	// Output:
 	// #+TITLE: My Mega Service
 	//
-	// #+NAME: Mega Service
+	// #+CAPTION: Mega Service
 	// [[/logo-image.jpg]]
 	// [[http://jaytaylor.com/][Mega Service]]
 	//

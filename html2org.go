@@ -436,7 +436,7 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 			return ctx.emit("")
 		} else if alt != "" {
 			return ctx.emit(fmt.Sprintf(`
-#+NAME: %s
+#+CAPTION: %s
 [[%s]]
 `, alt, src))
 		}
