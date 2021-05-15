@@ -102,7 +102,7 @@ func main() {
 
 func checkNonHtmlContent(b []byte) error {
 	ct := http.DetectContentType(b)
-	if !strings.Contains(ct, "text/html") {
+	if !(strings.Contains(ct, "text/html") || strings.Contains(ct, "text/xml")) {
 		return fmt.Errorf("non-html file: %s", ct)
 	}
 	return nil
