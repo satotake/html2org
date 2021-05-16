@@ -9,6 +9,8 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+
+	"golang.org/x/net/html"
 )
 
 const destPath = "testdata"
@@ -600,6 +602,76 @@ func TestForms(t *testing.T) {
 	}
 }
 
+func TestInternalLinks(t *testing.T) {
+	testCases := []struct {
+		baseURL string
+		input   string
+		output  string
+	}{
+		{
+			"",
+			`<h3 id="foo">Test</h3>`,
+			"*** Test",
+		},
+		{
+			"",
+			`<h3 id="foo">with dest</h3>
+<h3 id="bar">without dest</h3>
+<a href="#foo">link</a>
+`,
+			`*** with dest <<foo>>
+
+*** without dest
+[[foo][link]]`,
+		},
+		// TODO
+		// internal link attached to long block should be top of it?
+		// 		{
+		// 			"",
+		// 			`<div id="foo">
+		// <p>long para</p>
+		// <p>long para</p>
+		// </div>
+		// <a href="#foo">link</a>
+		// `,
+		// 			`<<foo>>
+		// long para
+
+		// long para
+
+		// [[foo][link]]`,
+		// 		},
+		{
+			"",
+			`<a name="foo">name attribute</a><a href="#foo">link</a>`,
+			`name attribute <<foo>> [[foo][link]]`,
+		},
+		{
+			"http://example.com",
+			`<h3 id="foo">with dest</h3>
+<h3 id="bar">without dest</h3>
+<a href="#foo">internal link</a>
+<a href="/path">external link</a>
+`,
+			`*** with dest <<foo>>
+
+*** without dest
+[[foo][internal link]] [[http://example.com/path][external link]]`,
+		},
+	}
+
+	for _, testCase := range testCases {
+		if msg, err := wantString(testCase.input, testCase.output, Options{
+			BaseURL:       testCase.baseURL,
+			InternalLinks: true,
+		}); err != nil {
+			t.Error(err)
+		} else if len(msg) > 0 {
+			t.Log(msg)
+		}
+	}
+}
+
 func TestTextAreas(t *testing.T) {
 	testCases := []struct {
 		input  string
@@ -754,6 +826,11 @@ func TestBaseURLOption(t *testing.T) {
 			"https://mitpress.mit.edu",
 			`<a href="book-Z-H-4.html#%_toc_start">content</a>`,
 			"[[https://mitpress.mit.edu/book-Z-H-4.html][content]]",
+		},
+		{
+			"http://example.com/foo/",
+			`<a href="#foo">content</a>`,
+			"[[foo][content]]",
 		},
 	}
 
@@ -1374,6 +1451,63 @@ output:
 		)
 	}
 	return msg, nil
+}
+
+func TestCollectFragmentIDs(t *testing.T) {
+	testCases := []struct {
+		input  string
+		output []string
+	}{
+		{
+			`<a href="normal-link">normal link</a>`,
+			[]string{},
+		},
+		{
+			`<a href="#">sharp only</a>`,
+			[]string{},
+		},
+		{
+			`<a href="normal-link">normal link</a>
+<a href="#fragment-1">normal link</a>
+<a href="#fragment-2">normal link</a>
+<a href="#fragment-2">normal link-2</a>
+<a href="normal-link">normal link</a>
+`,
+			[]string{"fragment-1", "fragment-2"},
+		},
+		{
+			`<div><div><a href="normal-link">normal link</a>
+<a href="#fragment-1">normal link</a>
+<div><a href="#fragment-2">normal link</a></div>
+<a href="normal-link">normal link</a>
+</div></div>`,
+			[]string{"fragment-1", "fragment-2"},
+		},
+	}
+
+	for _, testCase := range testCases {
+		want := testCase.output
+		r := strings.NewReader(testCase.input)
+		doc, err := html.Parse(r)
+		if err != nil {
+			t.Errorf("\nwant: %q but %s", want, err)
+		}
+		ctx := textifyTraverseContext{
+			buf:         bytes.Buffer{},
+			fragmentIDs: map[string]struct{}{},
+		}
+		ctx.collectFragmentIDs(doc)
+		got := ctx.fragmentIDs
+		if len(got) != len(want) {
+			t.Errorf("\ngot len: %d\nwant len: %d", len(got), len(want))
+		}
+		for _, w := range want {
+			_, ok := got[w]
+			if !ok {
+				t.Errorf("\ndoes not exist: %q", w)
+			}
+		}
+	}
 }
 
 func TestCleanSpacing(t *testing.T) {

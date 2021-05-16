@@ -32,6 +32,7 @@ type Options struct {
 	BreakLongLines      bool
 	BaseURL             string
 	ShowNoscripts       bool
+	InternalLinks       bool
 }
 
 // PrettyTablesOptions overrides tablewriter behaviors
@@ -86,9 +87,11 @@ func FromHTMLNode(doc *html.Node, o ...Options) (string, error) {
 	}
 
 	ctx := textifyTraverseContext{
-		buf:     bytes.Buffer{},
-		options: options,
+		buf:         bytes.Buffer{},
+		fragmentIDs: map[string]struct{}{},
+		options:     options,
 	}
+	ctx.collectFragmentIDs(doc)
 	if err := ctx.traverse(doc); err != nil {
 		return "", err
 	}
@@ -146,6 +149,7 @@ type textifyTraverseContext struct {
 	isPreFormatted  bool
 	isInForm        bool
 	formCounter     int
+	fragmentIDs     map[string]struct{}
 }
 
 // tableTraverseContext holds table ASCII-form related context.
@@ -168,6 +172,7 @@ func (tableCtx *tableTraverseContext) init() {
 func (ctx *textifyTraverseContext) traverseWithSubContext(node *html.Node) (textifyTraverseContext, error) {
 	subCtx := textifyTraverseContext{
 		options:        ctx.options,
+		fragmentIDs:    ctx.fragmentIDs,
 		isPreFormatted: ctx.isPreFormatted,
 		isInForm:       ctx.isInForm,
 		formCounter:    ctx.formCounter,
@@ -637,6 +642,37 @@ func (ctx *textifyTraverseContext) handleTableElement(node *html.Node) error {
 	return nil
 }
 
+func (ctx *textifyTraverseContext) handleInternalLinks(node *html.Node) error {
+	if !ctx.options.InternalLinks {
+		return nil
+	}
+	id := getAttrVal(node, "id")
+	name := getAttrVal(node, "name")
+	_, matchedID := ctx.fragmentIDs[id]
+	_, matchedName := ctx.fragmentIDs[name]
+	if matchedID || matchedName {
+		var frag string
+		if matchedID {
+			frag = id
+		} else {
+			frag = name
+		}
+		endsWithNewLine := ctx.endsWithNewLine
+		if endsWithNewLine {
+			b := ctx.buf.Bytes()
+			ctx.buf = *bytes.NewBuffer(b[0 : len(b)-1])
+			ctx.endsWithNewLine = false
+		}
+		if err := ctx.emit(" <<" + frag + ">> "); err != nil {
+			return err
+		}
+		if endsWithNewLine {
+			ctx.emit("\n")
+		}
+	}
+	return nil
+}
+
 func (ctx *textifyTraverseContext) traverse(node *html.Node) error {
 	switch node.Type {
 	default:
@@ -652,8 +688,13 @@ func (ctx *textifyTraverseContext) traverse(node *html.Node) error {
 		return ctx.emit(data)
 
 	case html.ElementNode:
-		return ctx.handleElement(node)
+		if err := ctx.handleElement(node); err != nil {
+			return err
+		}
+
+		return ctx.handleInternalLinks(node)
 	}
+
 }
 
 func (ctx *textifyTraverseContext) traverseChildren(node *html.Node) error {
@@ -672,7 +713,8 @@ func (ctx *textifyTraverseContext) emit(data string) error {
 	}
 	var (
 		lines = ctx.breakLongLines(data)
-		err   error
+		// lines = strings.Split(data, "\n") TODO
+		err error
 	)
 	for _, line := range lines {
 		runes := []rune(line)
@@ -750,6 +792,9 @@ func (ctx *textifyTraverseContext) breakLongLines(data string) []string {
 func (ctx *textifyTraverseContext) normalizeHrefLink(link string) (string, error) {
 	if link == "" {
 		return link, nil
+	}
+	if strings.HasPrefix(link, "#") {
+		return link[1:], nil
 	}
 
 	link = strings.TrimSpace(link)
@@ -890,4 +935,16 @@ func normalizeNonBreakingSpace(s string) string {
 		}
 	}
 	return buf.String()
+}
+
+func (ctx *textifyTraverseContext) collectFragmentIDs(node *html.Node) {
+	for c := node.FirstChild; c != nil; c = c.NextSibling {
+		if c.DataAtom == atom.A {
+			href := getAttrVal(c, "href")
+			if strings.HasPrefix(href, "#") && len(href) > 1 {
+				ctx.fragmentIDs[href[1:]] = struct{}{}
+			}
+		}
+		ctx.collectFragmentIDs(c)
+	}
 }

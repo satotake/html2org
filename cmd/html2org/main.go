@@ -19,13 +19,14 @@ import (
 var version string
 
 type Option struct {
-	Input        string
-	Output       string
-	Version      bool
-	BaseURL      string
-	PrettyTables bool
-	Noscript     bool
-	Check        bool
+	Input         string
+	Output        string
+	Version       bool
+	BaseURL       string
+	PrettyTables  bool
+	Noscript      bool
+	Check         bool
+	InternalLinks bool
 }
 
 func parseFlag() *Option {
@@ -36,6 +37,7 @@ func parseFlag() *Option {
 	table := flag.Bool("t", false, "enable PrettyTables option")
 	noscript := flag.Bool("noscript", false, "show content inside noscript tag")
 	check := flag.Bool("c", false, "sniff content and throw error if it is guessed as non-html")
+	internalLinks := flag.Bool("l", false, "show internal link destinations if the link exists.")
 	flag.Parse()
 
 	return &Option{
@@ -46,6 +48,7 @@ func parseFlag() *Option {
 		*table,
 		*noscript,
 		*check,
+		*internalLinks,
 	}
 }
 
@@ -88,6 +91,7 @@ func main() {
 		BaseURL:       opt.BaseURL,
 		PrettyTables:  opt.PrettyTables,
 		ShowNoscripts: opt.Noscript,
+		InternalLinks: opt.InternalLinks,
 	})
 	check(err)
 	res = res + "\n"
