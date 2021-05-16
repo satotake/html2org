@@ -255,6 +255,27 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 		ctx.prefix = ""
 		return ctx.emit("\n")
 
+	case atom.Dt:
+		if !ctx.endsWithNewLine {
+			ctx.emit("\n")
+		}
+
+		ctx.emit("_")
+		if err := ctx.traverseChildren(node); err != nil {
+			return err
+		}
+		return ctx.emit("_\n")
+
+	case atom.Dd:
+		if !ctx.endsWithNewLine {
+			ctx.emit("\n")
+		}
+
+		if err := ctx.traverseChildren(node); err != nil {
+			return err
+		}
+		return ctx.emit("\n")
+
 	case atom.B, atom.Strong:
 		subCtx, err := ctx.traverseWithSubContext(node)
 		if err != nil {

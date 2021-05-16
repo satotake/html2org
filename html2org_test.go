@@ -939,6 +939,42 @@ func TestLinks(t *testing.T) {
 	}
 }
 
+func TestDescriptionList(t *testing.T) {
+	testCases := []struct {
+		input  string
+		output string
+	}{
+		{
+			`<dl>
+  <dt>Term</dt>
+  <dd>Description</dd>
+</dl>`,
+			`_Term_
+Description`,
+		},
+		{
+			`<dl>
+  <dt>Term 1</dt>
+  <dt>Term 2</dt>
+  <dd>Description 1</dd>
+  <dd>Description 2</dd>
+</dl>`,
+			`_Term 1_
+_Term 2_
+Description 1
+Description 2`,
+		},
+	}
+
+	for _, testCase := range testCases {
+		if msg, err := wantString(testCase.input, testCase.output, Options{OmitLinks: true}); err != nil {
+			t.Error(err)
+		} else if len(msg) > 0 {
+			t.Log(msg)
+		}
+	}
+}
+
 func TestOmitLinks(t *testing.T) {
 	testCases := []struct {
 		input  string
