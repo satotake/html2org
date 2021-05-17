@@ -33,6 +33,7 @@ type Options struct {
 	BaseURL             string
 	ShowNoscripts       bool
 	InternalLinks       bool
+	ShowLongDataURL     bool
 }
 
 // PrettyTablesOptions overrides tablewriter behaviors
@@ -816,6 +817,13 @@ func (ctx *textifyTraverseContext) normalizeHrefLink(link string) (string, error
 	}
 	if strings.HasPrefix(link, "#") {
 		return link[1:], nil
+	}
+	if !ctx.options.ShowLongDataURL && strings.HasPrefix(link, "data:") && len(link) > 100 {
+		splitted := strings.Split(link, ";")
+		if len(splitted) > 0 {
+			return splitted[0] + ";(omitted)", nil
+		}
+		return "data:(omitted)", nil
 	}
 
 	link = strings.TrimSpace(link)

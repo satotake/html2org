@@ -19,14 +19,15 @@ import (
 var version string
 
 type Option struct {
-	Input         string
-	Output        string
-	Version       bool
-	BaseURL       string
-	PrettyTables  bool
-	Noscript      bool
-	Check         bool
-	InternalLinks bool
+	Input           string
+	Output          string
+	Version         bool
+	BaseURL         string
+	PrettyTables    bool
+	Noscript        bool
+	Check           bool
+	InternalLinks   bool
+	ShowLongDataURL bool
 }
 
 func parseFlag() *Option {
@@ -38,6 +39,7 @@ func parseFlag() *Option {
 	noscript := flag.Bool("noscript", false, "show content inside noscript tag")
 	check := flag.Bool("c", false, "sniff content and throw error if it is guessed as non-html")
 	internalLinks := flag.Bool("l", false, "show internal link destinations if the link exists.")
+	showLongDataURL := flag.Bool("image-data-url", false, "show all data url in img tags")
 	flag.Parse()
 
 	return &Option{
@@ -49,6 +51,7 @@ func parseFlag() *Option {
 		*noscript,
 		*check,
 		*internalLinks,
+		*showLongDataURL,
 	}
 }
 
@@ -88,10 +91,11 @@ func main() {
 	}
 
 	res, err := html2org.FromReader(r, html2org.Options{
-		BaseURL:       opt.BaseURL,
-		PrettyTables:  opt.PrettyTables,
-		ShowNoscripts: opt.Noscript,
-		InternalLinks: opt.InternalLinks,
+		BaseURL:         opt.BaseURL,
+		PrettyTables:    opt.PrettyTables,
+		ShowNoscripts:   opt.Noscript,
+		InternalLinks:   opt.InternalLinks,
+		ShowLongDataURL: opt.ShowLongDataURL,
 	})
 	check(err)
 	res = res + "\n"

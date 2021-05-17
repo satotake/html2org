@@ -1047,6 +1047,11 @@ func TestImageAltTags(t *testing.T) {
 			`#+CAPTION: Example
 [[http://example.ru/hello.jpg]]`,
 		},
+		{
+			`<img src="data:image/png;aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" alt="Example"/>`,
+			`#+CAPTION: Example
+[[data:image/png;(omitted)]]`,
+		},
 		// Images do matter if they are in a link.
 		{
 			`<a href="http://example.com/"><img src="http://example.ru/hello.jpg" alt="Example"/></a>`,
@@ -1063,7 +1068,7 @@ func TestImageAltTags(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		if msg, err := wantString(testCase.input, testCase.output); err != nil {
+		if msg, err := wantString(testCase.input, testCase.output, Options{ShowLongDataURL: false}); err != nil {
 			t.Error(err)
 		} else if len(msg) > 0 {
 			t.Log(msg)

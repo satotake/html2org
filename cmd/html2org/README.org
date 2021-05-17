@@ -30,6 +30,10 @@ html2org <flags>
     sniff content and throw error if it is guessed as non-html
   -noscript
     show content inside noscript tag
+  -l
+    show internal link destinations if the link exists.
+  -image-data-url
+    show all data url in img tags
   -h
     show usage
 #+end_src
