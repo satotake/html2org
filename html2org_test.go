@@ -474,6 +474,11 @@ func TestStrippingLists(t *testing.T) {
 			"<li>item 1</li> \t\n <li>item 2</li> <li> item 3</li>\n_",
 			"- item 1\n- item 2\n- item 3\n_",
 		},
+		{
+			// omit empty list
+			"<li>item 1</li> \t\n <li><div></div></li> <li> item 3</li>",
+			"- item 1\n- item 3",
+		},
 	}
 
 	for _, testCase := range testCases {
@@ -1377,7 +1382,7 @@ List:
 List:
 
 - [[foo][Foo]]
-- [[/		                bar/baz][Bar]]
+- [[/ bar/baz][Bar]]
 - Baz`,
 		},
 	}

@@ -245,14 +245,19 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 		return err
 
 	case atom.Li:
+		subCtx, err := ctx.traverseWithSubContext(node)
+		if err != nil {
+			return err
+		}
+		s := strings.TrimSpace(cleanSpacing(subCtx.buf.String()))
+		if s == "" {
+			return nil
+		}
 		ctx.prefix = "- "
 		if !ctx.endsWithNewLine {
 			ctx.emit("\n")
 		}
-
-		if err := ctx.traverseChildren(node); err != nil {
-			return err
-		}
+		ctx.emit(s)
 		ctx.prefix = ""
 		return ctx.emit("\n")
 
