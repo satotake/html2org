@@ -1382,7 +1382,7 @@ List:
 List:
 
 - [[foo][Foo]]
-- [[/ bar/baz][Bar]]
+- [[/		                bar/baz][Bar]]
 - Baz`,
 		},
 	}
