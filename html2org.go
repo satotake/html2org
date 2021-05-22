@@ -249,15 +249,16 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 		if err != nil {
 			return err
 		}
-		s := strings.TrimSpace(cleanSpacing(subCtx.buf.String()))
-		if s == "" {
+		s := subCtx.buf.String()
+		cleaned := strings.TrimSpace(cleanSpacing(s))
+		if cleaned == "" {
 			return nil
 		}
 		ctx.prefix = "- "
 		if !ctx.endsWithNewLine {
 			ctx.emit("\n")
 		}
-		ctx.emit(s)
+		ctx.emit(strings.Trim(s, " \n\r\t"))
 		ctx.prefix = ""
 		return ctx.emit("\n")
 
