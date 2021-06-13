@@ -562,6 +562,14 @@ func TestForms(t *testing.T) {
 		},
 		{
 			"https://example.com/foo",
+			`<form><textarea name="fname"></textarea></form>`,
+			`#+begin_textarea _ :id org-form-id--1 :name fname
+
+#+end_textarea
+[[org-form:org-form-id--1:get:https://example.com/foo][Submit]]`,
+		},
+		{
+			"https://example.com/foo",
 			`<form method="get" action="/submit">
 	<input type="text" name="fname1">
 	<input type="text" name="fname2">

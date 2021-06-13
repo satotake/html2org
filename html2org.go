@@ -445,12 +445,19 @@ func (ctx *textifyTraverseContext) handleElement(node *html.Node) error {
 
 	case atom.Form:
 		method := getAttrVal(node, "method")
-		action, err := ctx.normalizeHrefLink(getAttrVal(node, "action"))
+		action := getAttrVal(node, "action")
+		if method == "" {
+			method = "get"
+		}
+		if action == "" {
+			action = ctx.options.BaseURL
+		}
+		normalized, err := ctx.normalizeHrefLink(action)
 		ctx.isInForm = true
 		c := ctx.formCounter + 1
 		ctx.formCounter = c
 		id := fmt.Sprintf(orgFormIDFormat, c)
-		link := fmt.Sprintf("[[org-form:%s:%s:%s][Submit]]\n\n", id, method, action)
+		link := fmt.Sprintf("[[org-form:%s:%s:%s][Submit]]\n\n", id, method, normalized)
 		if err != nil {
 			return err
 		}
